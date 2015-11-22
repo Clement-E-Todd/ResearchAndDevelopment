@@ -1,0 +1,39 @@
+﻿#pragma kernel UpdateView
+
+struct ViewInfo
+{
+    float3 position;
+    float3 forward;
+    float3 right;
+    
+    float viewDepth;
+    
+    int width;
+    int height;
+};
+
+RWTexture2D<float4> viewTexture;
+RWStructuredBuffer<ViewInfo> viewInfoBuffer;
+
+[numthreads(16,9,1)]
+void UpdateView (uint3 id : SV_DispatchThreadID)
+{
+	ViewInfo viewInfo = viewInfoBuffer[0];
+	
+  	float3 up = cross(viewInfo.forward, viewInfo.right);
+  	
+  	// Find the direction that this pixel is looking in
+  	float unitSize = 1.0 / (float)viewInfo.height;
+  	
+  	float3 viewPoint = viewInfo.position + (viewInfo.forward * viewInfo.viewDepth);
+  	
+  	viewPoint += viewInfo.right * unitSize * ((-viewInfo.width/2.0) + id.x);
+  	viewPoint += up * unitSize * ((-viewInfo.height/2.0) + id.y);
+  	float3 viewDirection = normalize(viewPoint - viewInfo.position);
+
+	// Set the color of this pixel to represent the direction it is looking in.
+	viewTexture[id.xy] = float4(0.5 + viewDirection.x / 2,
+	                            0.5 + viewDirection.y / 2, 
+	                            0.5 + viewDirection.z / 2,
+	                            1.0);
+}
