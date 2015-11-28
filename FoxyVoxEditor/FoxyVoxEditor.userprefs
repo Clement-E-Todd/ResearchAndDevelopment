@@ -1,13 +1,10 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\ModelEditor.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\VoxelModel\VoxelModel.cs">
     <Files>
-      <File FileName="Assets\ModelCursor3D.cs" Line="8" Column="3" />
-      <File FileName="Assets\ModelView2DVoxel.cs" Line="75" Column="48" />
-      <File FileName="Assets\ModelView2D.cs" Line="97" Column="98" />
-      <File FileName="Assets\ControlPanel.cs" Line="1" Column="1" />
-      <File FileName="Assets\ModelEditor.cs" Line="57" Column="44" />
-      <File FileName="Assets\MeshVoxel.cs" Line="21" Column="67" />
+      <File FileName="Assets\Scripts\VoxelEditor\BoneEditor\BoneEditorVoxelModel.cs" Line="60" Column="3" />
+      <File FileName="Assets\Scripts\VoxelModel\VoxelModel.cs" Line="10" Column="2" />
+      <File FileName="Assets\Scripts\VoxelModel\VoxelModelBone.cs" Line="34" Column="45" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
