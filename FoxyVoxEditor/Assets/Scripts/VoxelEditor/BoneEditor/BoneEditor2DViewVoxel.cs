@@ -47,11 +47,11 @@ public class BoneEditor2DViewVoxel : MonoBehaviour, IPointerClickHandler, IPoint
 	{
 		if (eventData.button == PointerEventData.InputButton.Left)
 		{
-			VoxelObject.GetComponent<MeshRenderer>().material.color = Color.yellow;
+			BoneEditor.Instance.CurrentBone.SetColorIndexAtCoord(BoneEditor.Instance.palletEditor.currentSelectionIndex, Coord);
 		}
 		else if (eventData.button == PointerEventData.InputButton.Right)
 		{
-			VoxelObject.GetComponent<MeshRenderer>().material.color = Color.clear;
+			BoneEditor.Instance.CurrentBone.SetColorIndexAtCoord(0, Coord);
 		}
 	}
 

@@ -19,6 +19,8 @@ public class VoxelModel : MonoBehaviour
 		
 		List<VoxelColor> colorPallet = new List<VoxelColor>();
 		colorPallet.Add(VoxelColor.black);
+		colorPallet.Add(VoxelColor.white);
+		colorPallet.Add(VoxelColor.grey);
 		
 		model.AddBone(rootWidth, rootHeight, rootDepth, colorPallet);
 		

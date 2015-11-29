@@ -32,6 +32,8 @@ public class BoneEditor : MonoBehaviour
 	
 	GameObject currentBoneObject;
 	
+	public BoneEditorColorPallet palletEditor;
+	
 	BoneEditor2DView[] editorViews;
 	
 	private Coord viewCoords = new Coord();
@@ -91,7 +93,7 @@ public class BoneEditor : MonoBehaviour
 			{
 				for (int z = 0; z < bone.depth; ++z)
 				{
-					voxelObjects[x,y,z] = BoneEditorVoxel.Create(currentBoneObject, currentBone, x, y, z);
+					voxelObjects[x,y,z] = BoneEditorVoxel.Create(currentBoneObject, currentBone, new Coord(x, y, z));
 				}
 			}
 		}

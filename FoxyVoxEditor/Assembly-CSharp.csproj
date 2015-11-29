@@ -49,6 +49,8 @@
      <Compile Include="Assets\Scripts\VoxelEditor\BoneEditor\BoneEditor.cs" />
      <Compile Include="Assets\Scripts\VoxelEditor\BoneEditor\BoneEditor2DView.cs" />
      <Compile Include="Assets\Scripts\VoxelEditor\BoneEditor\BoneEditor2DViewVoxel.cs" />
+     <Compile Include="Assets\Scripts\VoxelEditor\BoneEditor\BoneEditorColorPallet.cs" />
+     <Compile Include="Assets\Scripts\VoxelEditor\BoneEditor\BoneEditorColorPalletSwatch.cs" />
      <Compile Include="Assets\Scripts\VoxelEditor\BoneEditor\BoneEditorCursor3D.cs" />
      <Compile Include="Assets\Scripts\VoxelEditor\BoneEditor\BoneEditorVoxel.cs" />
      <Compile Include="Assets\Scripts\VoxelEditor\CameraControls.cs" />

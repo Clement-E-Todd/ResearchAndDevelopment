@@ -45,10 +45,8 @@ public class VoxelModelBone
 		return bone;
 	}
 	
-	public VoxelColor GetColorAtCoord(Coord coord)
+	public VoxelColor GetColorAtPalletIndex(int palletIndex)
 	{
-		int palletIndex = voxelData[coord.x, coord.y, coord.z];
-	
 		if (palletIndex == 0)
 		{
 			return VoxelColor.clear;
@@ -56,6 +54,23 @@ public class VoxelModelBone
 		else
 		{
 			return colorPallet[palletIndex-1];
-		}	
+		}
+	}
+	
+	public VoxelColor GetColorAtCoord(Coord coord)
+	{
+		int palletIndex = voxelData[coord.x, coord.y, coord.z];
+	
+		return GetColorAtPalletIndex(palletIndex);
+	}
+	
+	public int GetColorPalletCount()
+	{
+		return colorPallet.Count;
+	}
+	
+	public void SetColorIndexAtCoord(int palletIndex, Coord coord)
+	{
+		voxelData[coord.x, coord.y, coord.z] = palletIndex;
 	}
 }
