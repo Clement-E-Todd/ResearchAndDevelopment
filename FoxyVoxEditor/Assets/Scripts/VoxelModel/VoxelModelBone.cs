@@ -69,6 +69,24 @@ public class VoxelModelBone
 	
 	public void RemoveColorAtPalletIndex(int palletIndex)
 	{
+        for (int x = 0; x < width; ++x)
+        {
+            for (int y = 0; y < height; ++y)
+            {
+                for (int z = 0; z < depth; ++z)
+                {
+                    if (voxelData[x, y, z] > palletIndex)
+                    {
+                        --voxelData[x, y, z];
+                    }
+                    else if (voxelData[x, y, z] == palletIndex)
+                    {
+                        voxelData[x, y, z] = 0;
+                    }
+                }
+            }
+        }
+
 		colorPallet.RemoveAt(palletIndex-1);
 	}
 	
