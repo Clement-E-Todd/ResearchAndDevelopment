@@ -4,16 +4,16 @@ using System.Collections;
 public class VoxelColor
 {
 	[Range (0, 15)]
-	int r;
+	public int r;
 	
 	[Range (0, 15)]
-	int g;
+	public int g;
 	
 	[Range (0, 15)]
-	int b;
+	public int b;
 	
 	[Range (0, 15)]
-	int a;
+	public int a;
 	
 	public VoxelColor(float r, float g, float b, float a)
 		: this((int)(r*15), (int)(g*15), (int)(b*15), (int)(a*15))

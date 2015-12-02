@@ -57,6 +57,39 @@ public class VoxelModelBone
 		}
 	}
 	
+	public void SetColorAtPalletIndex(int palletIndex, VoxelColor color)
+	{
+		colorPallet[palletIndex-1] = color;
+	}
+	
+	public void CreateNewColorInPallet()
+	{
+		colorPallet.Add(VoxelColor.white);
+	}
+	
+	public void RemoveColorAtPalletIndex(int palletIndex)
+	{
+		colorPallet.RemoveAt(palletIndex-1);
+	}
+	
+	public void DecreaseIndexOfColorAtPalletIndex(int currentPalletIndex)
+	{
+		VoxelColor indicatedColor = colorPallet[currentPalletIndex-1];
+		VoxelColor colorToSwap = colorPallet[currentPalletIndex-2];
+		
+		colorPallet[currentPalletIndex-2] = indicatedColor;
+		colorPallet[currentPalletIndex-1] = colorToSwap;
+	}
+	
+	public void IncreaseIndexOfColorAtPalletIndex(int currentPalletIndex)
+	{
+		VoxelColor indicatedColor = colorPallet[currentPalletIndex-1];
+		VoxelColor colorToSwap = colorPallet[currentPalletIndex];
+		
+		colorPallet[currentPalletIndex] = indicatedColor;
+		colorPallet[currentPalletIndex-1] = colorToSwap;
+	}
+	
 	public VoxelColor GetColorAtCoord(Coord coord)
 	{
 		int palletIndex = voxelData[coord.x, coord.y, coord.z];
