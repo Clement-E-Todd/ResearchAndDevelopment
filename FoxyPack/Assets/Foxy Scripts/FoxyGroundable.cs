@@ -50,6 +50,8 @@ public class FoxyGroundable : MonoBehaviour
 
 	FoxyMoveable moveable;
 	
+	public bool followGroundRotation;
+	
 	void Awake()
 	{
 		moveable = GetComponent<FoxyMoveable>();
@@ -107,7 +109,11 @@ public class FoxyGroundable : MonoBehaviour
 			if (currentPlatform == previousPlatform)
 			{
 				moveable.MoveBy(platformVelocity);
-				moveable.RotateBy(platformRotation);
+				
+				if (followGroundRotation)
+				{
+					transform.Rotate(platformRotation.eulerAngles);
+				}
 			}
 
 			contactPositionInWorld = transform.position;

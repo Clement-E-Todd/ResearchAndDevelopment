@@ -2,6 +2,7 @@
 using System.Collections;
 
 [RequireComponent (typeof(FoxyMoveable))]
+[RequireComponent (typeof(FoxyGroundable))]
 public class TestCharacterController : MonoBehaviour
 {
 	public Camera relativeCamera = null;
@@ -11,10 +12,12 @@ public class TestCharacterController : MonoBehaviour
 	private float jumpForce = 2f;
 
 	FoxyMoveable moveable;
+	FoxyGroundable groundable;
 
 	void Awake()
 	{
 		moveable = GetComponent<FoxyMoveable>();
+		groundable = GetComponent<FoxyGroundable>();
 	}
 
 	void FixedUpdate()
@@ -64,14 +67,17 @@ public class TestCharacterController : MonoBehaviour
 		// Move towards the indicated direction
 		if (movementDirection != Vector3.zero)
 		{
-//			moveable.MoveBy(transform.forward * speed * Time.fixedDeltaTime);
+			moveable.MoveBy(transform.forward * speed * Time.fixedDeltaTime);
 
 			float turnSpeed = (Mathf.PI * 2) * (runSpeed / speed);
-//			transform.forward = Vector3.RotateTowards(transform.forward, movementDirection, turnSpeed * Time.fixedDeltaTime, 1);
-			moveable.RotateBy(new Vector3(0, 90f, 0));
+			transform.forward = Vector3.RotateTowards(transform.forward, movementDirection, turnSpeed * Time.fixedDeltaTime, 1);
+			
+			groundable.followGroundRotation = false;
 		}
-
-		FoxyGroundable groundable = GetComponent<FoxyGroundable>();
+		else
+		{
+			groundable.followGroundRotation = true;
+		}
 
 		if (Input.GetKeyDown(KeyCode.Space) && groundable != null && groundable.Grounded)
 		{

@@ -8,9 +8,7 @@ using System.Collections;
 public class FoxyMoveable : MonoBehaviour
 {
 	Rigidbody rigid;
-
 	Vector3 totalMovement;
-	Quaternion totalRotation;
 
 	void Awake()
 	{
@@ -22,7 +20,6 @@ public class FoxyMoveable : MonoBehaviour
 	void FixedUpdate()
 	{
 		rigid.MovePosition(transform.position + totalMovement);
-		rigid.rotation *= totalRotation;
 
 		Reset();
 	}
@@ -32,19 +29,8 @@ public class FoxyMoveable : MonoBehaviour
 		totalMovement += distance;
 	}
 
-	public void RotateBy(Quaternion rotation)
-	{
-		totalRotation *= rotation;
-	}
-
-	public void RotateBy(Vector3 eulerAngles)
-	{
-		RotateBy(Quaternion.Euler(eulerAngles));
-	}
-
 	void Reset()
 	{
 		totalMovement = Vector3.zero;
-		totalRotation = Quaternion.identity;
 	}
 }
