@@ -1,13 +1,6 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Foxy Scripts/FoxyGroundable.cs">
-    <Files>
-      <File FileName="Assets/Foxy Scripts/FoxyGroundable.cs" Line="110" Column="40" />
-      <File FileName="Assets/Test Scripts/TestCharacterController.cs" Line="71" Column="4" />
-      <File FileName="Assets/Foxy Scripts/FoxyMoveable.cs" Line="37" Column="3" />
-      <File FileName="Assets/Test Scripts/TestFollowCamera.cs" Line="33" Column="72" />
-    </Files>
-  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.Workspace />
+  <MonoDevelop.Ide.Workbench />
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>

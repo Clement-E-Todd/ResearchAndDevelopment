@@ -1,23 +1,27 @@
 ﻿using UnityEngine;
 using System.Collections;
+using FoxyPack;
 
-[RequireComponent (typeof(FoxyMoveable))]
-[RequireComponent (typeof(FoxyGroundable))]
+[RequireComponent (typeof(Rigidbody))]
+[RequireComponent (typeof(Moveable))]
+[RequireComponent (typeof(CollisionHandler))]
 public class TestCharacterController : MonoBehaviour
 {
 	public Camera relativeCamera = null;
 
 	public float walkSpeed = 2.1f;
 	public float runSpeed = 4.2f;
-	private float jumpForce = 2f;
+	private float jumpForce = 5f;
 
-	FoxyMoveable moveable;
-	FoxyGroundable groundable;
+	Rigidbody rigid;
+	Moveable moveable;
+	CollisionHandler groundable;
 
 	void Awake()
 	{
-		moveable = GetComponent<FoxyMoveable>();
-		groundable = GetComponent<FoxyGroundable>();
+		rigid = GetComponent<Rigidbody>();
+		moveable = GetComponent<Moveable>();
+		groundable = GetComponent<CollisionHandler>();
 	}
 
 	void FixedUpdate()
@@ -79,9 +83,10 @@ public class TestCharacterController : MonoBehaviour
 			groundable.followGroundRotation = true;
 		}
 
-		if (Input.GetKeyDown(KeyCode.Space) && groundable != null && groundable.Grounded)
+		if (Input.GetKeyDown(KeyCode.Space) && groundable.Grounded)
 		{
-			GetComponent<Rigidbody>().velocity += (transform.up * jumpForce);
+			rigid.velocity += (transform.up * jumpForce);
+			groundable.ClearCurrentPlatform();
 		}
 	}
 }

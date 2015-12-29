@@ -45,12 +45,12 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\Foxy Scripts\FoxyGravityReceiver.cs" />
-     <Compile Include="Assets\Foxy Scripts\FoxyGravitySource.cs" />
-     <Compile Include="Assets\Foxy Scripts\FoxyGravitySourceDirectional.cs" />
-     <Compile Include="Assets\Foxy Scripts\FoxyGravitySourcePoint.cs" />
-     <Compile Include="Assets\Foxy Scripts\FoxyGroundable.cs" />
-     <Compile Include="Assets\Foxy Scripts\FoxyMoveable.cs" />
+     <Compile Include="Assets\Foxy Scripts\CollisionHandler.cs" />
+     <Compile Include="Assets\Foxy Scripts\GravityReceiver.cs" />
+     <Compile Include="Assets\Foxy Scripts\GravitySource.cs" />
+     <Compile Include="Assets\Foxy Scripts\GravitySourceDirectional.cs" />
+     <Compile Include="Assets\Foxy Scripts\GravitySourcePoint.cs" />
+     <Compile Include="Assets\Foxy Scripts\Moveable.cs" />
      <Compile Include="Assets\Test Scripts\TestAutoRotate.cs" />
      <Compile Include="Assets\Test Scripts\TestCharacterController.cs" />
      <Compile Include="Assets\Test Scripts\TestFollowCamera.cs" />
