@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
 
 [RequireComponent (typeof(MeshFilter))]
 public class HexTerrainRaw : HexTerrain
@@ -15,28 +16,26 @@ public class HexTerrainRaw : HexTerrain
 	void GenerateMeshForHex(int x, int y)
 	{
 		Mesh mesh = new Mesh();
+		mesh.name = string.Format("Hex Mesh [{0}, {1}]", x, y);
 		GetComponent<MeshFilter>().mesh = mesh;
 
-		mesh.vertices = new Vector3[7];
-		mesh.vertices[0] = Vector3.zero;
-		for (int i = 1; i < mesh.vertices.Length; ++i)
+		List<Vector3> vertices = new List<Vector3>() { Vector3.zero };
+		for (int i = 0; i < sidesPerHex; ++i)
 		{
-			mesh.vertices[i] = new Vector3(
-				Mathf.Cos(Mathf.PI * 2 / 6 * i) * hexRadius,
-				0,
-				Mathf.Sin(Mathf.PI * 2 / 6 * i) * hexRadius
-				);
+			vertices.Add(new Vector3(Mathf.Cos(Mathf.PI * 2 / 6 * i) * hexRadius, 0, Mathf.Sin(Mathf.PI * 2 / 6 * i) * hexRadius));
 		}
+		mesh.vertices = vertices.ToArray();
 
 		mesh.uv = new Vector2[mesh.vertices.Length];
 
-		mesh.triangles = new int[sidesPerHex * sidesPerTri];
+		List<int> triangles = new List<int>();
 		for (int i = 0; i < sidesPerHex; ++i)
 		{
-			mesh.triangles[i*3] = 0;
-			mesh.triangles[i * 3 + 1] = i + 1;
-			mesh.triangles[i * 3 + 2] = i + 2;
+			triangles.Add(0);
+			triangles.Add(i + 2 < sidesPerHex ? i + 2 : 0);
+			triangles.Add(i + 1);
 		}
+		mesh.triangles = triangles.ToArray();
 
 		mesh.RecalculateBounds();
 		mesh.RecalculateNormals();
