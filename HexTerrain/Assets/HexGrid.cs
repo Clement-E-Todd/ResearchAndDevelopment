@@ -1,4 +1,4 @@
-﻿using System;
+﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -61,7 +61,7 @@ public class HexGrid<T> : IEnumerable<T>
 #warning HexGrid<T> should replace these classes once it is reinstated.
 public abstract class HexGrid
 {
-	protected struct Coord
+	public struct Coord
 	{
 		public int x, y;
 		public Coord(int x, int y)
@@ -71,7 +71,7 @@ public abstract class HexGrid
 		}
 	}
 
-	protected Coord GetNeighbourCoordOffset(HexEdge direction)
+	public static Coord GetNeighbourCoordOffset(HexEdge direction)
 	{
 		switch (direction)
 		{
@@ -103,28 +103,34 @@ public class HexTerrainTileGrid : HexGrid, IEnumerable<HexTerrain.Tile>
 
 	private Dictionary<Coord, HexTerrain.Tile> items = new Dictionary<Coord, HexTerrain.Tile>();
 
-	public IEnumerator<HexTerrain.Tile> GetEnumerator()
-	{
-		return items.Values.GetEnumerator();
-	}
+    public bool Add(Coord coord, HexTerrain.Tile item)
+    {
+        if (items.ContainsKey(coord))
+        {
+            Debug.LogWarningFormat("Cannot add item {0} to hex grid at coord {1}; coord already contains an item.", item, coord);
+            return false;
+        }
 
-	IEnumerator IEnumerable.GetEnumerator()
-	{
-		return GetEnumerator();
-	}
-}
+        items.Add(coord, item);
+        return true;
+    }
 
-public class HexTerrainTileGridGrid : HexGrid, IEnumerable<HexTerrainTileGrid>
-{
-	public HexTerrainTileGrid this[int x, int y]
-	{
-		get { return items[new Coord(x, y)]; }
-		set { items[new Coord(x, y)] = value; }
-	}
+    public bool TryGetCoordForItem(HexTerrain.Tile item, out Coord coord)
+    {
+        foreach (KeyValuePair<Coord, HexTerrain.Tile> itemPair in items)
+        {
+            if (itemPair.Value == item)
+            {
+                coord = itemPair.Key;
+                return true;
+            }
+        }
 
-	private Dictionary<Coord, HexTerrainTileGrid> items = new Dictionary<Coord, HexTerrainTileGrid>();
+        coord = new Coord();
+        return false;
+    }
 
-	public IEnumerator<HexTerrainTileGrid> GetEnumerator()
+    public IEnumerator<HexTerrain.Tile> GetEnumerator()
 	{
 		return items.Values.GetEnumerator();
 	}
