@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
 
 public abstract class HexTerrain : MonoBehaviour
 {
@@ -16,13 +17,13 @@ public abstract class HexTerrain : MonoBehaviour
             one will represent the floor below it, then the next one will represent a
             ceiling below that etc.
         */
-        class Layer
+        public class Layer
         {
-            float centerHeight;
-            float centerWallHeight = 0f;
+            public float centerHeight;
+            public float centerWallHeight = 0f;
 
-            float[] cornerHeights = new float[(int)HexCorner.MAX];
-            bool[] cornerWallHeights = new bool[(int)HexCorner.MAX];
+            public float[] cornerHeights = new float[(int)HexCorner.MAX];
+            public bool[] cornerWallHeights = new bool[(int)HexCorner.MAX];
 
             public Layer(float height)
             {
@@ -34,14 +35,17 @@ public abstract class HexTerrain : MonoBehaviour
                 }
             }
         }
-        private Layer[] layers;
-        private bool topLayerIsCeiling;
+        public List<Layer> layers = new List<Layer>();
+        public bool topLayerIsCeiling;
 
-        public Tile() : this(0f) { }
+        public Tile() { }
 
-        public Tile(float height)
+        public Tile(params float[] layerHeights)
         {
-            layers = new Layer[] { new Layer(height) };
+            for (int i = 0; i < layerHeights.Length; ++i)
+            {
+                layers.Add(new Layer(layerHeights[i]));
+            }
         }
     }
 
