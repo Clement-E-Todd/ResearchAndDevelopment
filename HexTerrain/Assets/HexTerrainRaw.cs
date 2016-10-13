@@ -57,13 +57,15 @@ public class HexTerrainRaw : HexTerrain
         List<Vector2> uvs = new List<Vector2>();
         List<int> triangles = new List<int>();
 
-        // Generate the surface of each floor and ceiling in this tile.
+        /*
+        * First, generate the surface of each floor and ceiling.
+        */
         for (int iLayer = 0; iLayer < tile.layers.Count; ++iLayer)
         {
             // Find out whether this layer is a floor or a ceiling
             bool isCeiling = (iLayer % 2 != 0) != tile.topLayerIsCeiling;
 
-            // Calculate where each vertex in the mesh belongs.
+            // Calculate vertices...
             vertices.Add(new Vector3(0, tile.layers[iLayer].centerHeight, 0));
             for (HexCorner corner = 0; corner < HexCorner.MAX; ++corner)
             {
@@ -72,10 +74,9 @@ public class HexTerrainRaw : HexTerrain
                 vertices.Add(cornerPos);
             }
 
-            // TODO: Calculate UVs
-            uvs = new List<Vector2>(mesh.vertices.Length);
+            // TODO: Calculate UVs...
 
-            // Find all of the triangles in the mesh.
+            // Calculate triangles...
             int centerVertIndex = iLayer * 7;
             for (int iTri = 0; iTri < sidesPerHex; ++iTri)
             {
@@ -90,6 +91,45 @@ public class HexTerrainRaw : HexTerrain
                 {
                     triangles.Add(centerVertIndex + (iTri + 1));
                     triangles.Add(centerVertIndex + (iTri + 2 <= sidesPerHex ? iTri + 2 : iTri - 4));
+                }
+            }
+        }
+
+        /*
+        * Next, generate the sides connecting each floor to the ceiling below it.
+        */
+        for (int iLayer = 0; iLayer < tile.layers.Count; ++iLayer)
+        {
+            bool isCeiling = (iLayer % 2 != 0) != tile.topLayerIsCeiling;
+
+            if (!isCeiling && iLayer + 1 < tile.layers.Count)
+            {
+                for (HexEdge edge = 0; edge < HexEdge.MAX; ++edge)
+                {
+                    // Calculate vertices...
+                    HexCorner[] corners = HexHelper.GetNeighbouringCorners(edge);
+
+                    for (int iCorner = 0; iCorner < corners.Length; ++iCorner)
+                    {
+                        Vector3 cornerPos = HexHelper.GetCornerDirection(corners[iCorner]);
+
+                        cornerPos.y = tile.layers[iLayer].cornerHeights[(int)corners[iCorner]];
+                        vertices.Add(cornerPos);
+                        
+                        cornerPos.y = tile.layers[iLayer+1].cornerHeights[(int)corners[iCorner]];
+                        vertices.Add(cornerPos);
+                    }
+
+                    // TODO: Calculate UVs...
+
+                    // TODO: Calculate triangles...
+                    triangles.Add(vertices.Count - 4);
+                    triangles.Add(vertices.Count - 3);
+                    triangles.Add(vertices.Count - 2);
+
+                    triangles.Add(vertices.Count - 2);
+                    triangles.Add(vertices.Count - 3);
+                    triangles.Add(vertices.Count - 1);
                 }
             }
         }
@@ -111,3 +151,4 @@ public class HexTerrainRaw : HexTerrain
         }
     }
 }
+ 

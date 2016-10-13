@@ -37,6 +37,8 @@ public abstract class HexTerrain : MonoBehaviour
         }
         public List<Layer> layers = new List<Layer>();
         public bool topLayerIsCeiling;
+        public float minSideHeight = 0f;
+        public float maxSideHeight = 1f;
 
         public Tile() { }
 
