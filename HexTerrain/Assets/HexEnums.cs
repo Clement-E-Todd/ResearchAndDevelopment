@@ -1,8 +1,8 @@
 ﻿public enum HexCorner
 {
-	East,
-	SouthEast,
-	SouthWest,
+    East,
+    SouthEast,
+    SouthWest,
     West,
     NorthWest,
     NorthEast,
@@ -11,9 +11,9 @@
 
 public enum HexEdge
 {
-	SouthEast,
-	South,
-	SouthWest,
+    SouthEast,
+    South,
+    SouthWest,
     NorthWest,
     North,
     NorthEast,

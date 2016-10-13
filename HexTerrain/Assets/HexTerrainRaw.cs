@@ -7,8 +7,8 @@ public class HexTerrainRaw : HexTerrain
 {
     Dictionary<HexGrid.Coord, GameObject> hexObjects = new Dictionary<HexGrid.Coord, GameObject>();
 
-	const int sidesPerHex = 6;
-	const int sidesPerTri = 3;
+    const int sidesPerHex = 6;
+    const int sidesPerTri = 3;
 
     void Start()
     {
@@ -21,10 +21,10 @@ public class HexTerrainRaw : HexTerrain
         tileGrid.Add( HexGrid.GetNeighbourCoordOffset(HexEdge.NorthWest),   new Tile());
 
         GenerateAllHexMeshes();
-	}
+    }
     
-	void GenerateMeshForTile(HexTerrain.Tile tile)
-	{
+    void GenerateMeshForTile(HexTerrain.Tile tile)
+    {
         // Find out at which coordinates the tile exists within our tile grid.
         HexGrid.Coord coord;
         if (!tileGrid.TryGetCoordForItem(tile, out coord))
@@ -46,35 +46,35 @@ public class HexTerrainRaw : HexTerrain
         }
 
         // Begin setting up the mesh.
-		Mesh mesh = new Mesh();
-		mesh.name = string.Format("Hex Mesh [{0}, {1}]", coord.x, coord.y);
+        Mesh mesh = new Mesh();
+        mesh.name = string.Format("Hex Mesh [{0}, {1}]", coord.x, coord.y);
         hexObject.GetComponent<MeshFilter>().mesh = mesh;
 
         // Calculate where each vertex in the mesh belongs.
-		List<Vector3> vertices = new List<Vector3>() { Vector3.zero };
-		for (HexCorner corner = 0; corner < HexCorner.MAX; ++corner)
-		{
-			vertices.Add(HexHelper.GetCornerDirection(corner));
-		}
-		mesh.vertices = vertices.ToArray();
+        List<Vector3> vertices = new List<Vector3>() { Vector3.zero };
+        for (HexCorner corner = 0; corner < HexCorner.MAX; ++corner)
+        {
+        	vertices.Add(HexHelper.GetCornerDirection(corner));
+        }
+        mesh.vertices = vertices.ToArray();
 
         // TODO: Calculate UVs
-		mesh.uv = new Vector2[mesh.vertices.Length];
+        mesh.uv = new Vector2[mesh.vertices.Length];
 
         // Find all of the triangles in the mesh.
-		List<int> triangles = new List<int>();
-		for (int i = 0; i < sidesPerHex; ++i)
-		{
-			triangles.Add(0);
+        List<int> triangles = new List<int>();
+        for (int i = 0; i < sidesPerHex; ++i)
+        {
+            triangles.Add(0);
             triangles.Add(i + 1);
             triangles.Add(i + 2 <= sidesPerHex ? i + 2 : i - 4);
-		}
-		mesh.triangles = triangles.ToArray();
+        }
+        mesh.triangles = triangles.ToArray();
 
         // Finalize the mesh.
-		mesh.RecalculateBounds();
-		mesh.RecalculateNormals();
-	}
+        mesh.RecalculateBounds();
+        mesh.RecalculateNormals();
+    }
 
     void GenerateAllHexMeshes()
     {
