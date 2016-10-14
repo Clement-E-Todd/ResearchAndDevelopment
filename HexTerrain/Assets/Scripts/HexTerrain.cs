@@ -3,7 +3,8 @@ using System.Collections.Generic;
 
 public abstract class HexTerrain : MonoBehaviour
 {
-    protected const float hexRadius = 1f;
+    public float hexRadius = 1f;
+	public float wallTextureHeight = 1f;
 
     /*
         A HexTerrain.Tile represents a single tile within the terrain.
@@ -37,19 +38,23 @@ public abstract class HexTerrain : MonoBehaviour
         }
         public List<Layer> layers = new List<Layer>();
         public bool topLayerIsCeiling;
-        public float minSideHeight = 0f;
-        public float maxSideHeight = 1f;
 
         public Tile() { }
 
-        public Tile(params float[] layerHeights)
-        {
-            for (int i = 0; i < layerHeights.Length; ++i)
-            {
-                layers.Add(new Layer(layerHeights[i]));
-            }
-        }
-    }
+		public Tile(params float[] layerHeights)
+		{
+			for (int i = 0; i < layerHeights.Length; ++i)
+			{
+				layers.Add(new Layer(layerHeights[i]));
+			}
+		}
+
+		public Tile(bool topLayerIsCeiling, params float[] layerHeights)
+			: this(layerHeights)
+		{
+			this.topLayerIsCeiling = topLayerIsCeiling;
+		}
+	}
 
     protected HexTerrainTileGrid tileGrid = new HexTerrainTileGrid();
 
