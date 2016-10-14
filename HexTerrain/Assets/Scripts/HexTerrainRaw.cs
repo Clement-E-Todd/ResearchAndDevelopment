@@ -55,7 +55,7 @@ public class HexTerrainRaw : HexTerrain
 		
 		// Begin setting up the meshes.
 		Mesh mesh = new Mesh();
-		mesh.name = string.Format("Mesh for [{0}, {1}]", coord.x, coord.y);
+		mesh.name = string.Format("Hex Mesh [{0}, {1}]", coord.x, coord.y);
 
 		hexObject.GetComponent<MeshFilter>().mesh = mesh;
 		hexObject.GetComponent<MeshRenderer>().materials = allMaterials;
