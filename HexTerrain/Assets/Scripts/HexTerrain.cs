@@ -6,6 +6,10 @@ public abstract class HexTerrain : MonoBehaviour
     public float hexRadius = 1f;
 	public float wallTextureHeight = 1f;
 
+    public Material[] floorMaterials;
+    public Material[] ceilingMaterials;
+    public Material[] wallMaterials;
+    
     /*
         A HexTerrain.Tile represents a single tile within the terrain.
     */
@@ -56,7 +60,7 @@ public abstract class HexTerrain : MonoBehaviour
 		}
 	}
 
-    protected HexTerrainTileGrid tileGrid = new HexTerrainTileGrid();
+    public HexTerrainTileGrid tileGrid = new HexTerrainTileGrid();
 
     public Vector3 GetLocalPositionForCoord(HexGrid.Coord coord)
     {
