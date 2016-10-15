@@ -52,7 +52,8 @@ public class HexTerrainEditable : HexTerrain
             pillarObject.AddComponent<MeshRenderer>();
 
             HexPillarEditable editable = pillarObject.AddComponent<HexPillarEditable>();
-            editable.GenerateMesh(pillarInfo);
+            editable.Init(this, pillarInfo);
+            editable.GenerateMesh();
             pillarObjects.Add(pillarInfo, editable);
             pillarGrid[coord].Add(pillarInfo);
 

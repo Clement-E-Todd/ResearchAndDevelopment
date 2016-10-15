@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using UnityEditor;
+using System.Collections.Generic;
+using System.Linq;
 
 [CustomEditor(typeof(GameObject))]
 [CanEditMultipleObjects]
@@ -29,14 +31,19 @@ public class HexPillarEditor : Editor
         MiddleHandle(selectedPillar);
         BottomHandle(selectedPillar);
 
-        /*
-        Handles.BeginGUI();
+        foreach (GameObject selectedObject in Selection.gameObjects)
+        {
+            HexPillarEditable selection = selectedObject.GetComponent<HexPillarEditable>();
 
-        if (GUILayout.Button("Press Me"))
-            Debug.Log(terrain);
+            if (!selection)
+                continue;
 
-        Handles.EndGUI();
-        */
+            for (HexCorner corner = 0; corner < HexCorner.MAX; ++corner)
+            {
+                CornerButton(selection, corner, true);
+                CornerButton(selection, corner, false);
+            }
+        }
     }
 
     void TopHandle(HexPillarEditable selectedPillar)
@@ -149,6 +156,47 @@ public class HexPillarEditor : Editor
         }
     }
 
+    void CornerButton(HexPillarEditable pillar, HexCorner corner, bool topCorner)
+    {
+        Handles.color = new Color(0.75f, 0.25f, 0f);
+
+        HexPillarCornerEditable cornerObject = (topCorner ? pillar.topCornerObjects : pillar.bottomCornerObjects)[(int)corner];
+        if (Handles.Button(
+            cornerObject.transform.position,
+            Quaternion.identity,
+            0.05f, 0.05f,
+            Handles.DotCap))
+        {
+            List<Object> selectedObjects = Selection.objects.ToList();
+
+            if (Event.current.shift)
+            {
+                if (selectedObjects.Contains(cornerObject.gameObject))
+                {
+                    selectedObjects.Remove(cornerObject.gameObject);
+                }
+                else
+                {
+                    selectedObjects.Insert(0, cornerObject.gameObject);
+                }
+            }
+            else
+            {
+                foreach (GameObject selectedObject in Selection.objects)
+                {
+                    if (selectedObject.GetComponent<HexPillarCornerEditable>())
+                    {
+                        selectedObjects.Remove(selectedObject);
+                    }
+                }
+
+                selectedObjects.Insert(0, cornerObject.gameObject);
+            }
+
+            Selection.objects = selectedObjects.ToArray();
+        }
+    }
+
     void RedrawSelections()
     {
         foreach (GameObject selectedObject in Selection.gameObjects)
@@ -158,7 +206,7 @@ public class HexPillarEditor : Editor
             if (!selection)
                 continue;
 
-            selection.GenerateMesh(selection.pillarInfo);
+            selection.GenerateMesh();
         }
     }
 }

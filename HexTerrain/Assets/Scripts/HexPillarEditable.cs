@@ -6,17 +6,42 @@ using System.Collections.Generic;
 [RequireComponent(typeof(MeshRenderer))]
 public class HexPillarEditable : MonoBehaviour
 {
+    public HexTerrainEditable owner { get; private set; }
     public HexPillarInfo pillarInfo;
+
+    public HexPillarCornerEditable[] topCornerObjects = new HexPillarCornerEditable[(int)HexCorner.MAX];
+    public HexPillarCornerEditable[] bottomCornerObjects = new HexPillarCornerEditable[(int)HexCorner.MAX];
 
     public void Awake()
     {
         Undo.undoRedoPerformed += OnUndoRedo;
     }
 
-    public void GenerateMesh(HexPillarInfo pillarInfo)
+    public void Init(HexTerrainEditable owner, HexPillarInfo pillarInfo)
     {
+        this.owner = owner;
         this.pillarInfo = pillarInfo;
 
+        for (HexCorner corner = 0; corner < HexCorner.MAX; ++corner)
+        {
+            string cornerName = string.Format("Corner ({0}, {1})", corner.ToString(), "Top");
+            GameObject topCornerGameObject = new GameObject(cornerName, typeof(HexPillarCornerEditable));
+            topCornerGameObject.transform.SetParent(transform);
+            topCornerObjects[(int)corner] = topCornerGameObject.GetComponent<HexPillarCornerEditable>();
+            topCornerObjects[(int)corner].Init(this, corner, true);
+            topCornerObjects[(int)corner].UpdatePosition();
+
+            cornerName = string.Format("Corner ({0}, {1})", corner.ToString(), "Bottom");
+            GameObject bottomCornerGameObject = new GameObject(cornerName, typeof(HexPillarCornerEditable));
+            bottomCornerGameObject.transform.SetParent(transform);
+            bottomCornerObjects[(int)corner] = bottomCornerGameObject.GetComponent<HexPillarCornerEditable>();
+            bottomCornerObjects[(int)corner].Init(this, corner, false);
+            bottomCornerObjects[(int)corner].UpdatePosition();
+        }
+    }
+
+    public void GenerateMesh()
+    {
         // Collect the various materials into one list
         List<Material> allMaterials = new List<Material>();
 
@@ -176,10 +201,17 @@ public class HexPillarEditable : MonoBehaviour
 
         mesh.RecalculateBounds();
         mesh.RecalculateNormals();
+
+        // Update corner handles to match new model
+        for (HexCorner corner = 0; corner < HexCorner.MAX; ++corner)
+        {
+            topCornerObjects[(int)corner].UpdatePosition();
+            bottomCornerObjects[(int)corner].UpdatePosition();
+        }
     }
 
     void OnUndoRedo()
     {
-        GenerateMesh(pillarInfo);
+        GenerateMesh();
     }
 }
