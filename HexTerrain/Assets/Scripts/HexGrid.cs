@@ -93,17 +93,23 @@ public abstract class HexGrid
     }
 }
 
-public class HexTerrainPillarGrid : HexGrid, IEnumerable<List<HexTerrain.Pillar>>
+public class HexTerrainPillarGrid : HexGrid, IEnumerable<List<HexPillarInfo>>
 {
-    public List<HexTerrain.Pillar> this[int x, int y]
+    public List<HexPillarInfo> this[Coord coord]
+    {
+        get { return items[coord]; }
+        set { items[coord] = value; }
+    }
+
+    public List<HexPillarInfo> this[int x, int y]
     {
         get { return items[new Coord(x, y)]; }
         set { items[new Coord(x, y)] = value; }
     }
 
-    private Dictionary<Coord, List<HexTerrain.Pillar>> items = new Dictionary<Coord, List<HexTerrain.Pillar>>();
+    private Dictionary<Coord, List<HexPillarInfo>> items = new Dictionary<Coord, List<HexPillarInfo>>();
 
-    public bool Add(Coord coord, List<HexTerrain.Pillar> item)
+    public bool Add(Coord coord, List<HexPillarInfo> item)
     {
         if (items.ContainsKey(coord))
         {
@@ -115,9 +121,9 @@ public class HexTerrainPillarGrid : HexGrid, IEnumerable<List<HexTerrain.Pillar>
         return true;
     }
 
-    public bool TryGetCoordForItem(List<HexTerrain.Pillar> item, out Coord coord)
+    public bool TryGetCoordForItem(List<HexPillarInfo> item, out Coord coord)
     {
-        foreach (KeyValuePair<Coord, List<HexTerrain.Pillar>> itemPair in items)
+        foreach (KeyValuePair<Coord, List<HexPillarInfo>> itemPair in items)
         {
             if (itemPair.Value == item)
             {
@@ -130,7 +136,12 @@ public class HexTerrainPillarGrid : HexGrid, IEnumerable<List<HexTerrain.Pillar>
         return false;
     }
 
-    public IEnumerator<List<HexTerrain.Pillar>> GetEnumerator()
+    public bool ContainsItemAtCoord(Coord coord)
+    {
+        return items.ContainsKey(coord);
+    }
+
+    public IEnumerator<List<HexPillarInfo>> GetEnumerator()
     {
         return items.Values.GetEnumerator();
     }
