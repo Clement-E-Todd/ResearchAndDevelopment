@@ -1,20 +1,26 @@
 ﻿using UnityEngine;
 using UnityEditor;
+using System.Collections.Generic;
 
 [CustomEditor(typeof(HexTerrainEditable))]
 public class HexTerrainEditor : Editor
 {
     public void OnSceneGUI()
     {
-        HexTerrainEditable terrain = Selection.activeGameObject.GetComponent<HexTerrainEditable>();
+        HexTerrainEditable terrain = Selection.activeGameObject ? Selection.activeGameObject.GetComponent<HexTerrainEditable>() : null;
 
-        foreach (HexTerrain.Tile tile in terrain.tileGrid)
+		if (!terrain)
+		{
+			return;
+		}
+
+        foreach (List<HexTerrain.Pillar> pillarSet in terrain.pillarGrid)
         {
             HexGrid.Coord coord = new HexGrid.Coord();
-            terrain.tileGrid.TryGetCoordForItem(tile, out coord);
+            terrain.pillarGrid.TryGetCoordForItem(pillarSet, out coord);
 
             Vector3 positionBefore = terrain.GetLocalPositionForCoord(coord);
-            positionBefore.y = tile.layers[0].centerHeight;
+            positionBefore.y = pillarSet[0].topEnd.centerHeight;
             positionBefore = terrain.transform.TransformPoint(positionBefore);
 
             Vector3 direction = terrain.transform.TransformDirection(Vector3.up);
@@ -25,16 +31,16 @@ public class HexTerrainEditor : Editor
 
             float delta = Vector3.Dot(positionDelta, direction);
 
-            tile.layers[0].centerHeight = Mathf.Max(tile.layers[0].centerHeight + delta, tile.layers[1].centerHeight);
+            pillarSet[0].topEnd.centerHeight = Mathf.Max(pillarSet[0].topEnd.centerHeight + delta, pillarSet[0].lowEnd.centerHeight);
 
-            for (int i = 0; i < tile.layers[0].cornerHeights.Length; ++i)
+            for (int i = 0; i < pillarSet[0].topEnd.cornerHeights.Length; ++i)
             {
-                tile.layers[0].cornerHeights[i] = Mathf.Max(tile.layers[0].cornerHeights[i] + delta, tile.layers[1].cornerHeights[i]);
+                pillarSet[0].topEnd.cornerHeights[i] = Mathf.Max(pillarSet[0].topEnd.cornerHeights[i] + delta, pillarSet[0].lowEnd.cornerHeights[i]);
             }
 
             if (delta != 0f)
             {
-                terrain.GenerateMeshForTile(tile);
+                terrain.GenerateMeshForPillar(pillarSet[0]);
             }
         }
 

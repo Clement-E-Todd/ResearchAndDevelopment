@@ -9,28 +9,18 @@ public abstract class HexTerrain : MonoBehaviour
     public Material[] floorMaterials;
     public Material[] ceilingMaterials;
     public Material[] wallMaterials;
-    
-    /*
-        A HexTerrain.Tile represents a single tile within the terrain.
-    */
-    public class Tile
+
+    public class Pillar
     {
-        /*
-            A layer represents a floor or ceiling within this Hex.
-            Our array of layers alternates between floors and ceilings; if the first layer
-            in the array represents a ceiling (ie topLayerIsCeiling == true), then the next
-            one will represent the floor below it, then the next one will represent a
-            ceiling below that etc.
-        */
-        public class Layer
+        public class End
         {
             public float centerHeight;
-            public float centerWallHeight = 0f;
+            public float centerSplitHeight = 0f;
 
             public float[] cornerHeights = new float[(int)HexCorner.MAX];
-            public bool[] cornerWallHeights = new bool[(int)HexCorner.MAX];
+            public bool[] cornerSplitHeights = new bool[(int)HexCorner.MAX];
 
-            public Layer(float height)
+            public End(float height)
             {
                 centerHeight = height;
 
@@ -40,27 +30,15 @@ public abstract class HexTerrain : MonoBehaviour
                 }
             }
         }
-        public List<Layer> layers = new List<Layer>();
-        public bool topLayerIsCeiling;
 
-        public Tile() { }
+        public End topEnd = new End(1f);
+        public End lowEnd = new End(0f);
 
-		public Tile(params float[] layerHeights)
-		{
-			for (int i = 0; i < layerHeights.Length; ++i)
-			{
-				layers.Add(new Layer(layerHeights[i]));
-			}
-		}
+        public bool drawTopEnd = true;
+        public bool drawLowEnd = true;
+    }
 
-		public Tile(bool topLayerIsCeiling, params float[] layerHeights)
-			: this(layerHeights)
-		{
-			this.topLayerIsCeiling = topLayerIsCeiling;
-		}
-	}
-
-    public HexTerrainTileGrid tileGrid = new HexTerrainTileGrid();
+    public HexTerrainPillarGrid pillarGrid = new HexTerrainPillarGrid();
 
     public Vector3 GetLocalPositionForCoord(HexGrid.Coord coord)
     {

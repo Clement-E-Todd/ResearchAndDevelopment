@@ -9,24 +9,35 @@ public class HexTerrainEditable : HexTerrain
 
     void Start()
     {
-        //tileGrid.Add(new HexGrid.Coord(), new Tile(false, 4.0f, 2.0f, 1.5f, 1.0f, 0.5f));
-        tileGrid.Add(new HexGrid.Coord(), new Tile(1.0f, 0f));
+        pillarGrid.Add(new HexGrid.Coord(0, 0), new List<Pillar>());
+        pillarGrid[0, 0].Add(new Pillar());
 
-        tileGrid.Add(HexGrid.GetNeighbourCoordOffset(HexEdge.North),     new Tile(1.0f, 0));
-        tileGrid.Add(HexGrid.GetNeighbourCoordOffset(HexEdge.NorthEast), new Tile(1.0f, 0));
-        tileGrid.Add(HexGrid.GetNeighbourCoordOffset(HexEdge.SouthEast), new Tile(1.0f, 0));
-        tileGrid.Add(HexGrid.GetNeighbourCoordOffset(HexEdge.South),     new Tile(1.0f, 0));
-        tileGrid.Add(HexGrid.GetNeighbourCoordOffset(HexEdge.SouthWest), new Tile(1.0f, 0));
-        tileGrid.Add(HexGrid.GetNeighbourCoordOffset(HexEdge.NorthWest), new Tile(1.0f, 0));
+        pillarGrid.Add(new HexGrid.Coord(1, 0), new List<Pillar>());
+        pillarGrid[1, 0].Add(new Pillar());
 
-        GenerateAllHexMeshes();
+        pillarGrid.Add(new HexGrid.Coord(1, -1), new List<Pillar>());
+        pillarGrid[1, -1].Add(new Pillar());
+
+        pillarGrid.Add(new HexGrid.Coord(0, 1), new List<Pillar>());
+        pillarGrid[0, 1].Add(new Pillar());
+
+        pillarGrid.Add(new HexGrid.Coord(-1, 0), new List<Pillar>());
+        pillarGrid[-1, 0].Add(new Pillar());
+
+        pillarGrid.Add(new HexGrid.Coord(-1, 1), new List<Pillar>());
+        pillarGrid[-1, 1].Add(new Pillar());
+
+        pillarGrid.Add(new HexGrid.Coord(0, -1), new List<Pillar>());
+        pillarGrid[0, -1].Add(new Pillar());
+
+        GenerateAllPillarMeshes();
     }
 
-    public void GenerateMeshForTile(HexTerrain.Tile tile)
+    public void GenerateMeshForPillar(Pillar pillar)
     {
         // Find out at which coordinates the tile exists within our tile grid.
         HexGrid.Coord coord;
-        if (!tileGrid.TryGetCoordForItem(tile, out coord))
+        if (!TryGetCoordForPillar(pillar, out coord))
         {
             return;
         }
@@ -58,7 +69,7 @@ public class HexTerrainEditable : HexTerrain
 
         // Begin setting up the meshes.
         Mesh mesh = new Mesh();
-        mesh.name = string.Format("Hex Mesh [{0}, {1}]", coord.x, coord.y);
+        mesh.name = "Pillar Mesh";
 
         hexObject.GetComponent<MeshFilter>().mesh = mesh;
         hexObject.GetComponent<MeshRenderer>().materials = allMaterials;
@@ -77,98 +88,118 @@ public class HexTerrainEditable : HexTerrain
         }
 
         /*
-        * First, generate the surface of each floor and ceiling.
+        * Generate the surface of the top and bottom.
         */
-        for (int iLayer = 0; iLayer < tile.layers.Count; ++iLayer)
+
+        // Calculate vertices...
+        if (pillar.drawTopEnd)
         {
-            // Find out whether this layer is a floor or a ceiling
-            bool isCeiling = (iLayer % 2 != 0) != tile.topLayerIsCeiling;
-
-            // Choose a material for this surface...
-            Material layerMat = null;
-            if (isCeiling)
-                layerMat = ceilingMaterials[Random.Range(0, ceilingMaterials.Length)];
-            else
-                layerMat = floorMaterials[Random.Range(0, floorMaterials.Length)];
-
-            // Calculate vertices...
-            vertices.Add(new Vector3(0, tile.layers[iLayer].centerHeight, 0));
+            vertices.Add(new Vector3(0, pillar.topEnd.centerHeight, 0));
             for (HexCorner corner = 0; corner < HexCorner.MAX; ++corner)
             {
                 Vector3 cornerPos = HexHelper.GetCornerDirection(corner);
-                cornerPos += new Vector3(0, tile.layers[iLayer].cornerHeights[(int)corner], 0);
+                cornerPos += new Vector3(0, pillar.topEnd.cornerHeights[(int)corner], 0);
                 vertices.Add(cornerPos);
             }
+        }
 
-            // Calculate UVs...
+
+        if (pillar.drawLowEnd)
+        {
+            vertices.Add(new Vector3(0, pillar.lowEnd.centerHeight, 0));
+            for (HexCorner corner = 0; corner < HexCorner.MAX; ++corner)
+            {
+                Vector3 cornerPos = HexHelper.GetCornerDirection(corner);
+                cornerPos += new Vector3(0, pillar.lowEnd.cornerHeights[(int)corner], 0);
+                vertices.Add(cornerPos);
+            }
+        }
+
+        // Calculate UVs...
+        if (pillar.drawTopEnd)
+        {
             uvs.Add(new Vector2(0.5f, 0.5f));
             for (HexCorner corner = 0; corner < HexCorner.MAX; ++corner)
             {
                 Vector3 direction = HexHelper.GetCornerDirection(corner);
                 uvs.Add(new Vector2(0.5f + direction.x / 2, 0.5f + direction.z / 2));
             }
+        }
 
-            // Calculate triangles...
-            List<int> triangles = trianglesPerMat[layerMat];
-            int centerVertIndex = iLayer * 7;
+        if (pillar.drawLowEnd)
+        {
+            uvs.Add(new Vector2(0.5f, 0.5f));
+            for (HexCorner corner = 0; corner < HexCorner.MAX; ++corner)
+            {
+                Vector3 direction = HexHelper.GetCornerDirection(corner);
+                uvs.Add(new Vector2(0.5f - direction.x / 2, 0.5f + direction.z / 2));
+            }
+        }
+
+        // Calculate triangles...
+        if (pillar.drawTopEnd)
+        {
+            Material mat = floorMaterials[Random.Range(0, floorMaterials.Length)];
+
+            List<int> triangles = trianglesPerMat[mat];
+            const int centerVertIndex = 0;
             for (int iTri = 0; iTri < sidesPerHex; ++iTri)
             {
                 triangles.Add(centerVertIndex);
 
-                if (isCeiling)
-                {
-                    triangles.Add(centerVertIndex + (iTri + 2 <= sidesPerHex ? iTri + 2 : iTri - 4));
-                    triangles.Add(centerVertIndex + (iTri + 1));
-                }
-                else
-                {
-                    triangles.Add(centerVertIndex + (iTri + 1));
-                    triangles.Add(centerVertIndex + (iTri + 2 <= sidesPerHex ? iTri + 2 : iTri - 4));
-                }
+                triangles.Add(centerVertIndex + (iTri + 1));
+                triangles.Add(centerVertIndex + (iTri + 2 <= sidesPerHex ? iTri + 2 : iTri - 4));
+            }
+        }
+
+        if (pillar.drawLowEnd)
+        {
+            Material mat = ceilingMaterials[Random.Range(0, ceilingMaterials.Length)];
+
+            List<int> triangles = trianglesPerMat[mat];
+            const int centerVertIndex = 7;
+            for (int iTri = 0; iTri < sidesPerHex; ++iTri)
+            {
+                triangles.Add(centerVertIndex);
+
+                triangles.Add(centerVertIndex + (iTri + 2 <= sidesPerHex ? iTri + 2 : iTri - 4));
+                triangles.Add(centerVertIndex + (iTri + 1));
             }
         }
 
         /*
-        * Next, generate the sides connecting each floor to the ceiling below it.
+        * Generate the sides connecting the top to the bottom.
         */
-        for (int iLayer = 0; iLayer < tile.layers.Count; ++iLayer)
+        for (HexEdge edge = 0; edge < HexEdge.MAX; ++edge)
         {
-            bool isCeiling = (iLayer % 2 != 0) != tile.topLayerIsCeiling;
+            // Choose a material for this surface...
+            Material layerMat = wallMaterials[Random.Range(0, wallMaterials.Length)];
 
-            if (!isCeiling && iLayer + 1 < tile.layers.Count)
+            // Calculate vertices and UVs...
+            HexCorner[] corners = HexHelper.GetNeighbouringCorners(edge);
+
+            for (int iCorner = 0; iCorner < corners.Length; ++iCorner)
             {
-                for (HexEdge edge = 0; edge < HexEdge.MAX; ++edge)
-                {
-                    // Choose a material for this surface...
-                    Material layerMat = wallMaterials[Random.Range(0, wallMaterials.Length)];
+                Vector3 cornerPos = HexHelper.GetCornerDirection(corners[iCorner]);
 
-                    // Calculate vertices and UVs...
-                    HexCorner[] corners = HexHelper.GetNeighbouringCorners(edge);
+                cornerPos.y = pillar.topEnd.cornerHeights[(int)corners[iCorner]];
+                vertices.Add(cornerPos);
+                uvs.Add(new Vector2(1 - iCorner, cornerPos.y / wallTextureHeight));
 
-                    for (int iCorner = 0; iCorner < corners.Length; ++iCorner)
-                    {
-                        Vector3 cornerPos = HexHelper.GetCornerDirection(corners[iCorner]);
-
-                        cornerPos.y = tile.layers[iLayer].cornerHeights[(int)corners[iCorner]];
-                        vertices.Add(cornerPos);
-                        uvs.Add(new Vector2(1 - iCorner, cornerPos.y / wallTextureHeight));
-
-                        cornerPos.y = tile.layers[iLayer + 1].cornerHeights[(int)corners[iCorner]];
-                        vertices.Add(cornerPos);
-                        uvs.Add(new Vector2(1 - iCorner, cornerPos.y / wallTextureHeight));
-                    }
-
-                    // Calculate triangles...
-                    List<int> triangles = trianglesPerMat[layerMat];
-                    triangles.Add(vertices.Count - 4); // Top-right of quad
-                    triangles.Add(vertices.Count - 3); // Low-right of quad
-                    triangles.Add(vertices.Count - 2); // Top-left of quad
-
-                    triangles.Add(vertices.Count - 2); // Top-left of quad
-                    triangles.Add(vertices.Count - 3); // Low-right of quad
-                    triangles.Add(vertices.Count - 1); // Low-left of quad
-                }
+                cornerPos.y = pillar.lowEnd.cornerHeights[(int)corners[iCorner]];
+                vertices.Add(cornerPos);
+                uvs.Add(new Vector2(1 - iCorner, cornerPos.y / wallTextureHeight));
             }
+
+            // Calculate triangles...
+            List<int> triangles = trianglesPerMat[layerMat];
+            triangles.Add(vertices.Count - 4); // Top-right of quad
+            triangles.Add(vertices.Count - 3); // Low-right of quad
+            triangles.Add(vertices.Count - 2); // Top-left of quad
+
+            triangles.Add(vertices.Count - 2); // Top-left of quad
+            triangles.Add(vertices.Count - 3); // Low-right of quad
+            triangles.Add(vertices.Count - 1); // Low-left of quad
         }
 
         // Finalize the mesh.
@@ -184,11 +215,31 @@ public class HexTerrainEditable : HexTerrain
         mesh.RecalculateNormals();
     }
 
-    void GenerateAllHexMeshes()
+    void GenerateAllPillarMeshes()
     {
-        foreach (HexTerrain.Tile tile in tileGrid)
+        foreach (List<Pillar> pillarSet in pillarGrid)
         {
-            GenerateMeshForTile(tile);
+            foreach (Pillar pillar in pillarSet)
+            {
+                GenerateMeshForPillar(pillar);
+            }
         }
+    }
+
+    bool TryGetCoordForPillar(Pillar pillar, out HexGrid.Coord coord)
+    {
+        foreach (List<Pillar> pillarsInHex in pillarGrid)
+        {
+            if (pillarsInHex.Contains(pillar))
+            {
+                if (pillarGrid.TryGetCoordForItem(pillarsInHex, out coord))
+                    return true;
+                else
+                    break;
+            }
+        }
+
+        coord = new HexGrid.Coord();
+        return false;
     }
 }
