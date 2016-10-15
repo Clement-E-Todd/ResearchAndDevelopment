@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEditor;
 using System.Collections.Generic;
 
 [RequireComponent(typeof(MeshFilter))]
@@ -6,6 +7,11 @@ using System.Collections.Generic;
 public class HexPillarEditable : MonoBehaviour
 {
     public HexPillarInfo pillarInfo;
+
+    public void Awake()
+    {
+        Undo.undoRedoPerformed += OnUndoRedo;
+    }
 
     public void GenerateMesh(HexPillarInfo pillarInfo)
     {
@@ -62,13 +68,13 @@ public class HexPillarEditable : MonoBehaviour
             }
         }
         
-        if (pillarInfo.drawLowEnd && pillarInfo.bottomMaterial)
+        if (pillarInfo.drawBottomEnd && pillarInfo.bottomMaterial)
         {
-            vertices.Add(new Vector3(0, pillarInfo.lowEnd.centerHeight, 0));
+            vertices.Add(new Vector3(0, pillarInfo.bottomEnd.centerHeight, 0));
             for (HexCorner corner = 0; corner < HexCorner.MAX; ++corner)
             {
                 Vector3 cornerPos = HexHelper.GetCornerDirection(corner);
-                cornerPos += new Vector3(0, pillarInfo.lowEnd.cornerHeights[(int)corner], 0);
+                cornerPos += new Vector3(0, pillarInfo.bottomEnd.cornerHeights[(int)corner], 0);
                 vertices.Add(cornerPos);
             }
         }
@@ -84,7 +90,7 @@ public class HexPillarEditable : MonoBehaviour
             }
         }
 
-        if (pillarInfo.drawLowEnd && pillarInfo.bottomMaterial)
+        if (pillarInfo.drawBottomEnd && pillarInfo.bottomMaterial)
         {
             uvs.Add(new Vector2(0.5f, 0.5f));
             for (HexCorner corner = 0; corner < HexCorner.MAX; ++corner)
@@ -108,7 +114,7 @@ public class HexPillarEditable : MonoBehaviour
             }
         }
 
-        if (pillarInfo.drawLowEnd && pillarInfo.bottomMaterial)
+        if (pillarInfo.drawBottomEnd && pillarInfo.bottomMaterial)
         {
             List<int> triangles = trianglesPerMat[pillarInfo.bottomMaterial];
             const int centerVertIndex = 7;
@@ -143,7 +149,7 @@ public class HexPillarEditable : MonoBehaviour
                 vertices.Add(cornerPos);
                 uvs.Add(new Vector2(1 - iCorner, cornerPos.y / pillarInfo.sideTextureHeight));
 
-                cornerPos.y = pillarInfo.lowEnd.cornerHeights[(int)corners[iCorner]];
+                cornerPos.y = pillarInfo.bottomEnd.cornerHeights[(int)corners[iCorner]];
                 vertices.Add(cornerPos);
                 uvs.Add(new Vector2(1 - iCorner, cornerPos.y / pillarInfo.sideTextureHeight));
             }
@@ -170,5 +176,10 @@ public class HexPillarEditable : MonoBehaviour
 
         mesh.RecalculateBounds();
         mesh.RecalculateNormals();
+    }
+
+    void OnUndoRedo()
+    {
+        GenerateMesh(pillarInfo);
     }
 }

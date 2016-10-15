@@ -10,32 +10,29 @@ public class HexTerrainEditable : HexTerrain
     void Start()
     {
         AddPillar(new HexGrid.Coord(0, 0));
-        AddPillar(HexGrid.GetNeighbourCoordOffset(HexEdge.SouthWest));
-        AddPillar(HexGrid.GetNeighbourCoordOffset(HexEdge.South));
-        AddPillar(HexGrid.GetNeighbourCoordOffset(HexEdge.SouthEast));
-        AddPillar(HexGrid.GetNeighbourCoordOffset(HexEdge.NorthEast));
-        AddPillar(HexGrid.GetNeighbourCoordOffset(HexEdge.North));
-        AddPillar(HexGrid.GetNeighbourCoordOffset(HexEdge.NorthWest));
+        //AddPillar(HexGrid.GetNeighbourCoordOffset(HexEdge.SouthWest));
+        //AddPillar(HexGrid.GetNeighbourCoordOffset(HexEdge.South));
+        //AddPillar(HexGrid.GetNeighbourCoordOffset(HexEdge.SouthEast));
+        //AddPillar(HexGrid.GetNeighbourCoordOffset(HexEdge.NorthEast));
+        //AddPillar(HexGrid.GetNeighbourCoordOffset(HexEdge.North));
+        //AddPillar(HexGrid.GetNeighbourCoordOffset(HexEdge.NorthWest));
     }
 
-    void AddPillar(HexGrid.Coord coord, HexPillarInfo pillarInfo = null)
+    void AddPillar(HexGrid.Coord coord)
     {
-        if (pillarInfo == null)
+        HexPillarInfo pillarInfo = ScriptableObject.CreateInstance<HexPillarInfo>();
+        
+        if (floorMaterials.Length > 0)
+            pillarInfo.topMaterial = floorMaterials[Random.Range(0, floorMaterials.Length)];
+
+        if (ceilingMaterials.Length > 0)
+            pillarInfo.bottomMaterial = ceilingMaterials[Random.Range(0, ceilingMaterials.Length)];
+
+        if (wallMaterials.Length > 0)
         {
-            pillarInfo = new HexPillarInfo();
-
-            if (floorMaterials.Length > 0)
-                pillarInfo.topMaterial = floorMaterials[Random.Range(0, floorMaterials.Length)];
-
-            if (ceilingMaterials.Length > 0)
-                pillarInfo.bottomMaterial = ceilingMaterials[Random.Range(0, ceilingMaterials.Length)];
-
-            if (wallMaterials.Length > 0)
+            for (HexEdge edge = 0; edge < HexEdge.MAX; ++edge)
             {
-                for (HexEdge edge = 0; edge < HexEdge.MAX; ++edge)
-                {
-                    pillarInfo.wallMaterials[(int)edge] = wallMaterials[Random.Range(0, wallMaterials.Length)];
-                }
+                pillarInfo.wallMaterials[(int)edge] = wallMaterials[Random.Range(0, wallMaterials.Length)];
             }
         }
 

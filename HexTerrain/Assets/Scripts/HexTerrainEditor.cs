@@ -7,13 +7,11 @@ public class HexTerrainEditor : Editor
 {
     public void OnSceneGUI()
     {
-        /*
         Handles.BeginGUI();
-
+        
         if (GUILayout.Button("Press Me"))
-            Debug.Log(terrain);
+            Debug.Log("Hurro!");
 
         Handles.EndGUI();
-        */
     }
 }
