@@ -7,7 +7,8 @@ using System.Collections.Generic;
 public class HexPillarEditable : MonoBehaviour
 {
     public HexTerrainEditable owner { get; private set; }
-    public HexPillarInfo pillarInfo;
+    public HexPillarInfo pillarInfo { get; private set; }
+    public HexGrid.Coord coord { get; private set; }
 
     public HexPillarCornerEditable[] topCornerObjects = new HexPillarCornerEditable[(int)HexCorner.MAX];
     public HexPillarCornerEditable[] bottomCornerObjects = new HexPillarCornerEditable[(int)HexCorner.MAX];
@@ -17,10 +18,11 @@ public class HexPillarEditable : MonoBehaviour
         Undo.undoRedoPerformed += OnUndoRedo;
     }
 
-    public void Init(HexTerrainEditable owner, HexPillarInfo pillarInfo)
+    public void Init(HexTerrainEditable owner, HexPillarInfo pillarInfo, HexGrid.Coord coord)
     {
         this.owner = owner;
         this.pillarInfo = pillarInfo;
+        this.coord = coord;
 
         for (HexCorner corner = 0; corner < HexCorner.MAX; ++corner)
         {
@@ -30,8 +32,11 @@ public class HexPillarEditable : MonoBehaviour
             topCornerObjects[(int)corner] = topCornerGameObject.GetComponent<HexPillarCornerEditable>();
             topCornerObjects[(int)corner].Init(this, corner, true);
             topCornerObjects[(int)corner].UpdatePosition();
+        }
 
-            cornerName = string.Format("Corner ({0}, {1})", corner.ToString(), "Bottom");
+        for (HexCorner corner = 0; corner < HexCorner.MAX; ++corner)
+        {
+            string cornerName = string.Format("Corner ({0}, {1})", corner.ToString(), "Bottom");
             GameObject bottomCornerGameObject = new GameObject(cornerName, typeof(HexPillarCornerEditable));
             bottomCornerGameObject.transform.SetParent(transform);
             bottomCornerObjects[(int)corner] = bottomCornerGameObject.GetComponent<HexPillarCornerEditable>();
@@ -42,6 +47,12 @@ public class HexPillarEditable : MonoBehaviour
 
     public void GenerateMesh()
     {
+        // Place logical constraints on the geometry before creating a mesh based on it
+        int pillarIndex = owner.pillarGrid[coord].IndexOf(pillarInfo);
+        HexPillarInfo pillarAbove = pillarIndex + 1 < owner.pillarGrid[coord].Count ? owner.pillarGrid[coord][pillarIndex + 1] : null;
+        HexPillarInfo pillarBelow = pillarIndex - 1 >= 0 ? owner.pillarGrid[coord][pillarIndex - 1] : null;
+        pillarInfo.Constrain(owner.minHeight, owner.maxHeight, pillarAbove, pillarBelow);
+
         // Collect the various materials into one list
         List<Material> allMaterials = new List<Material>();
 

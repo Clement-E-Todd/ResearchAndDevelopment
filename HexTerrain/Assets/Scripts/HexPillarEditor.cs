@@ -3,7 +3,7 @@ using UnityEditor;
 using System.Collections.Generic;
 using System.Linq;
 
-[CustomEditor(typeof(GameObject))]
+[CustomEditor(typeof(HexPillarEditable))]
 [CanEditMultipleObjects]
 public class HexPillarEditor : Editor
 {
@@ -68,7 +68,7 @@ public class HexPillarEditor : Editor
             selectedPillar,
             new Vector3(0, height, 0),
             Vector3.up,
-            0.5f,
+            0.35f,
             Handles.SphereCap);
 
         if (delta != 0f)
@@ -103,7 +103,7 @@ public class HexPillarEditor : Editor
         if (cap == null)
             cap = Handles.ArrowCap;
 
-        Handles.color = new Color(1f, 0.5f, 0f);
+        Handles.color = new Color(1f, 0.75f, 0f);
 
         Vector3 positionBefore = pillar.transform.TransformPoint(localPosition);
         Vector3 direction = pillar.transform.TransformDirection(localDirection);
@@ -158,17 +158,20 @@ public class HexPillarEditor : Editor
 
     void CornerButton(HexPillarEditable pillar, HexCorner corner, bool topCorner)
     {
-        Handles.color = new Color(0.75f, 0.25f, 0f);
-
         HexPillarCornerEditable cornerObject = (topCorner ? pillar.topCornerObjects : pillar.bottomCornerObjects)[(int)corner];
+        List<Object> selectedObjects = Selection.objects.ToList();
+
+        if (selectedObjects.Contains(cornerObject.gameObject))
+            Handles.color = new Color(1.0f, 0.25f, 0f);
+        else
+            Handles.color = new Color(0.5f, 0.125f, 0f);
+
         if (Handles.Button(
             cornerObject.transform.position,
             Quaternion.identity,
             0.05f, 0.05f,
             Handles.DotCap))
         {
-            List<Object> selectedObjects = Selection.objects.ToList();
-
             if (Event.current.shift)
             {
                 if (selectedObjects.Contains(cornerObject.gameObject))

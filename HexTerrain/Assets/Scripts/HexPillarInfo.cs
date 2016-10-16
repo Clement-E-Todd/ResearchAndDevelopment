@@ -37,8 +37,37 @@ public class HexPillarInfo : ScriptableObject
     {
         topEnd = ScriptableObject.CreateInstance<HexPillarInfo.End>();
         bottomEnd = ScriptableObject.CreateInstance<HexPillarInfo.End>();
+    }
 
-        topEnd.SetFlatHeight(1f);
-        bottomEnd.SetFlatHeight(0f);
+    public void Constrain(float minHeight, float maxHeight, HexPillarInfo pillarAbove, HexPillarInfo pillarBelow)
+    {
+        topEnd.centerHeight = Mathf.Clamp(topEnd.centerHeight, bottomEnd.centerHeight, maxHeight);
+        bottomEnd.centerHeight = Mathf.Clamp(bottomEnd.centerHeight, minHeight, topEnd.centerHeight);
+
+        if (pillarAbove)
+        {
+            topEnd.centerHeight = Mathf.Min(topEnd.centerHeight, pillarAbove.bottomEnd.centerHeight);
+        }
+
+        if (pillarBelow)
+        {
+            bottomEnd.centerHeight = Mathf.Max(bottomEnd.centerHeight, pillarBelow.topEnd.centerHeight);
+        }
+
+        for (HexCorner corner = 0; corner < HexCorner.MAX; ++corner)
+        {
+            topEnd.cornerHeights[(int)corner] = Mathf.Clamp(topEnd.cornerHeights[(int)corner], bottomEnd.cornerHeights[(int)corner], maxHeight);
+            bottomEnd.cornerHeights[(int)corner] = Mathf.Clamp(bottomEnd.cornerHeights[(int)corner], minHeight, topEnd.cornerHeights[(int)corner]);
+
+            if (pillarAbove)
+            {
+                topEnd.cornerHeights[(int)corner] = Mathf.Min(topEnd.cornerHeights[(int)corner], pillarAbove.bottomEnd.cornerHeights[(int)corner]);
+            }
+
+            if (pillarBelow)
+            {
+                bottomEnd.cornerHeights[(int)corner] = Mathf.Max(bottomEnd.cornerHeights[(int)corner], pillarBelow.topEnd.cornerHeights[(int)corner]);
+            }
+        }
     }
 }
