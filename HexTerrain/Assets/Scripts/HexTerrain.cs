@@ -37,13 +37,11 @@ public abstract class HexTerrain : MonoBehaviour
             Vector3.Distance(xRay.origin, interestionPoint) / xDirection.magnitude,
             Vector3.Distance(interestionPoint, localPosition) / yDirection.magnitude);
 
-        if (localPosition.x < 0)
+        if (Vector3.Dot(Vector3.Cross(transform.up, yDirection.normalized), localPosition) < 0f)
             xyDistances.x *= -1f;
 
-        if (localPosition.z < 0)
+        if (Vector3.Dot(Vector3.Cross(xDirection.normalized, transform.up), localPosition) < 0f)
             xyDistances.y *= -1f;
-
-        Debug.Log(xyDistances);
 
         return new HexGrid.Coord((int)Mathf.Round(xyDistances.x), (int)Mathf.Round(xyDistances.y));
     }
