@@ -125,6 +125,7 @@ public class HexTerrainEditor : Editor
     {
         Vector3 hexLocalPosition = terrain.GetLocalPositionForCoord(coord);
 
+        // Outter ring
         for (HexCorner corner = 0; corner < HexCorner.MAX; ++corner)
         {
             Vector3 corner1LocalPosition = hexLocalPosition + HexHelper.GetCornerDirection(corner) * terrain.hexRadius;
@@ -136,6 +137,24 @@ public class HexTerrainEditor : Editor
                 nextCorner = 0;
 
             Vector3 corner2LocalPosition = hexLocalPosition + HexHelper.GetCornerDirection(nextCorner) * terrain.hexRadius;
+            corner2LocalPosition.y = height;
+            Vector3 corner2WorldPosition = terrain.transform.TransformPoint(corner2LocalPosition);
+
+            Handles.DrawLine(corner1WorldPosition, corner2WorldPosition);
+        }
+
+        // Inner ring
+        for (HexCorner corner = 0; corner < HexCorner.MAX; ++corner)
+        {
+            Vector3 corner1LocalPosition = hexLocalPosition + HexHelper.GetCornerDirection(corner) * terrain.hexRadius / 2f;
+            corner1LocalPosition.y = height;
+            Vector3 corner1WorldPosition = terrain.transform.TransformPoint(corner1LocalPosition);
+
+            HexCorner nextCorner = corner + 1;
+            if (nextCorner == HexCorner.MAX)
+                nextCorner = 0;
+
+            Vector3 corner2LocalPosition = hexLocalPosition + HexHelper.GetCornerDirection(nextCorner) * terrain.hexRadius / 2f;
             corner2LocalPosition.y = height;
             Vector3 corner2WorldPosition = terrain.transform.TransformPoint(corner2LocalPosition);
 
