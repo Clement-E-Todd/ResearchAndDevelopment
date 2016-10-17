@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEditor;
 
-[CustomEditor(typeof(GameObject))]
+[CustomEditor(typeof(HexPillarCornerEditable))]
 [CanEditMultipleObjects]
 public class HexPillarCornerEditor : Editor
 {

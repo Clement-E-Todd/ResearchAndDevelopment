@@ -7,25 +7,16 @@ using System.Linq;
 [CanEditMultipleObjects]
 public class HexPillarEditor : Editor
 {
-    bool toolsHiddenByMe = false;
-
     public void OnSceneGUI()
     {
         HexPillarEditable selectedPillar = Selection.activeGameObject ? Selection.activeGameObject.GetComponent<HexPillarEditable>() : null;
 
         if (!selectedPillar)
         {
-            if (toolsHiddenByMe)
-            {
-                Tools.hidden = false;
-                toolsHiddenByMe = false;
-            }
-
             return;
         }
 
         Tools.hidden = true;
-        toolsHiddenByMe = true;
 
         TopHandle(selectedPillar);
         MiddleHandle(selectedPillar);
