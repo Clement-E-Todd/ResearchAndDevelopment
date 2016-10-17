@@ -23,7 +23,7 @@ public class HexTerrainEditable : HexTerrain
         AddPillar(HexGrid.GetNeighbourCoordOffset(HexEdge.NorthWest));
     }
 
-    void AddPillar(HexGrid.Coord coord, float topHeight = 1f, float bottomHeight = 0f)
+    public void AddPillar(HexGrid.Coord coord, float topHeight = 1f, float bottomHeight = 0f)
     {
         HexPillarInfo pillarInfo = ScriptableObject.CreateInstance<HexPillarInfo>();
 

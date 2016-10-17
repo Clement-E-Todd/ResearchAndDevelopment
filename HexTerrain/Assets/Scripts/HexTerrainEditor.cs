@@ -12,7 +12,10 @@ public class HexTerrainEditor : Editor
     public bool editorControlsVisible = true;
 
     List<HexGrid.Coord> newPillarCoords = new List<HexGrid.Coord>();
+    float newPillarTopHeight;
+    float newPillarBottomHeight;
 
+    Vector3 hexCreationHorizontalPlane;
     const float distanceToHorizonalPlane = 10f;
     
     enum CreationState
@@ -22,11 +25,11 @@ public class HexTerrainEditor : Editor
         ChooseTopHeight,
         ChooseBottomHeight
     }
-    CreationState currentState = CreationState.None;
+    CreationState currentCreationState = CreationState.None;
 
     void Awake()
     {
-        OnCreationStateBegin(currentState);
+        OnCreationStateBegin(currentCreationState);
     }
 
     public void OnSceneGUI()
@@ -114,9 +117,9 @@ public class HexTerrainEditor : Editor
 
     void UpdateCreationState()
     {
-        CreationState previousState = currentState;
+        CreationState previousCreationState = currentCreationState;
 
-        switch (currentState)
+        switch (currentCreationState)
         {
             case CreationState.ChooseHorizontalPosition:
                 ChooseHorizontalPosition(selectedTerrain);
@@ -131,10 +134,10 @@ public class HexTerrainEditor : Editor
                 break;
         }
 
-        if (currentState != previousState)
+        if (currentCreationState != previousCreationState)
         {
-            OnCreationStateEnd(previousState);
-            OnCreationStateBegin(currentState);
+            OnCreationStateEnd(previousCreationState);
+            OnCreationStateBegin(currentCreationState);
         }
     }
 
@@ -145,9 +148,9 @@ public class HexTerrainEditor : Editor
 
         HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
 
-        Vector3 planeTargetPosition = Camera.current.transform.position + Camera.current.transform.forward * distanceToHorizonalPlane;
+        hexCreationHorizontalPlane = Camera.current.transform.position + Camera.current.transform.forward * distanceToHorizonalPlane;
 
-        Plane plane = new Plane(terrain.transform.up, planeTargetPosition);
+        Plane plane = new Plane(terrain.transform.up, hexCreationHorizontalPlane);
         Ray ray = Camera.current.ScreenPointToRay(new Vector2(Event.current.mousePosition.x, Screen.height - Event.current.mousePosition.y));
 
         float rayDistance;
@@ -172,6 +175,16 @@ public class HexTerrainEditor : Editor
                 {
                     newPillarCoords.Add(coord);
                 }
+                else if (Event.current.button == 1)
+                {
+                    currentCreationState = CreationState.None;
+                }
+            }
+            else if (Event.current.type == EventType.MouseUp && Event.current.button == 0)
+            {
+                newPillarTopHeight = Mathf.Clamp(Vector3.Dot(selectedTerrain.transform.up, hexCreationHorizontalPlane), selectedTerrain.minHeight, selectedTerrain.maxHeight);
+
+                currentCreationState = CreationState.ChooseTopHeight;
             }
 
             foreach (HexGrid.Coord newPillarCoord in newPillarCoords)
@@ -187,12 +200,52 @@ public class HexTerrainEditor : Editor
 
     void ChooseTopHeight(HexTerrainEditable terrain)
     {
-        currentState = CreationState.ChooseBottomHeight;
+        if (Event.current.isMouse)
+        {
+            newPillarTopHeight += Event.current.delta.y / Screen.height * (selectedTerrain.maxHeight - selectedTerrain.minHeight);
+            newPillarTopHeight = Mathf.Clamp(newPillarTopHeight, selectedTerrain.maxHeight, selectedTerrain.minHeight);
+        }
+
+        foreach (HexGrid.Coord newPillarCoord in newPillarCoords)
+        {
+            Handles.color = new Color(0f, 1f, 0.75f);
+            DrawVerticalLinesAtCoord(terrain, newPillarCoord);
+            DrawRingAtCoord(terrain, newPillarCoord, newPillarTopHeight);
+        }
+
+        if (Event.current.type == EventType.MouseUp && Event.current.button == 0)
+        {
+            newPillarBottomHeight = newPillarTopHeight;
+
+            currentCreationState = CreationState.ChooseBottomHeight;
+        }
     }
 
     void ChooseBottomHeight(HexTerrainEditable terrain)
     {
-        currentState = CreationState.None;
+        if (Event.current.isMouse)
+        {
+            newPillarBottomHeight += Event.current.delta.y / Screen.height * (selectedTerrain.maxHeight - selectedTerrain.minHeight);
+            newPillarBottomHeight = Mathf.Clamp(newPillarBottomHeight, selectedTerrain.maxHeight, selectedTerrain.minHeight);
+        }
+
+        foreach (HexGrid.Coord newPillarCoord in newPillarCoords)
+        {
+            Handles.color = new Color(0f, 1f, 0.75f);
+            DrawVerticalLinesAtCoord(terrain, newPillarCoord);
+            DrawRingAtCoord(terrain, newPillarCoord, newPillarBottomHeight);
+        }
+
+        if (Event.current.type == EventType.MouseUp && Event.current.button == 0)
+        {
+            foreach (HexGrid.Coord newPillarCoord in newPillarCoords)
+            {
+                selectedTerrain.AddPillar(newPillarCoord, newPillarTopHeight, newPillarBottomHeight);
+            }
+
+            newPillarCoords.Clear();
+            currentCreationState = CreationState.None;
+        }
     }
 
 
@@ -268,9 +321,9 @@ public class HexTerrainEditor : Editor
 
     public void OnCreateNewPillarsPressed()
     {
-        if (currentState == CreationState.None)
+        if (currentCreationState == CreationState.None)
         {
-            currentState = CreationState.ChooseHorizontalPosition;
+            currentCreationState = CreationState.ChooseHorizontalPosition;
         }
     }
 }
