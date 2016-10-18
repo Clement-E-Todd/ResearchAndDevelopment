@@ -15,8 +15,10 @@ public class HexTerrainEditor : Editor
     float newPillarTopHeight;
     float newPillarBottomHeight;
 
-    Vector3 hexCreationHorizontalPlane;
+    Vector3 createPlanePoint;
     const float distanceToHorizonalPlane = 10f;
+
+    float totalMouseDelta;
     
     enum CreationState
     {
@@ -108,6 +110,7 @@ public class HexTerrainEditor : Editor
     void OnCreationStateBegin(CreationState state)
     {
         editorControlsVisible = (state == CreationState.None);
+        totalMouseDelta = 0f;
     }
 
     void OnCreationStateEnd(CreationState end)
@@ -144,13 +147,16 @@ public class HexTerrainEditor : Editor
     void ChooseHorizontalPosition(HexTerrainEditable terrain)
     {
         if (!Camera.current)
+        {
+            currentCreationState = CreationState.None;
             return;
+        }
 
         HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
 
-        hexCreationHorizontalPlane = Camera.current.transform.position + Camera.current.transform.forward * distanceToHorizonalPlane;
+        createPlanePoint = Camera.current.transform.position + Camera.current.transform.forward * distanceToHorizonalPlane;
 
-        Plane plane = new Plane(terrain.transform.up, hexCreationHorizontalPlane);
+        Plane plane = new Plane(terrain.transform.up, createPlanePoint);
         Ray ray = Camera.current.ScreenPointToRay(new Vector2(Event.current.mousePosition.x, Screen.height - Event.current.mousePosition.y));
 
         float rayDistance;
@@ -182,8 +188,6 @@ public class HexTerrainEditor : Editor
             }
             else if (Event.current.type == EventType.MouseUp && Event.current.button == 0)
             {
-                newPillarTopHeight = Mathf.Clamp(Vector3.Dot(selectedTerrain.transform.up, hexCreationHorizontalPlane), selectedTerrain.minHeight, selectedTerrain.maxHeight);
-
                 currentCreationState = CreationState.ChooseTopHeight;
             }
 
@@ -200,10 +204,15 @@ public class HexTerrainEditor : Editor
 
     void ChooseTopHeight(HexTerrainEditable terrain)
     {
+        HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
+
         if (Event.current.isMouse)
         {
-            newPillarTopHeight += Event.current.delta.y / Screen.height * (selectedTerrain.maxHeight - selectedTerrain.minHeight);
-            newPillarTopHeight = Mathf.Clamp(newPillarTopHeight, selectedTerrain.maxHeight, selectedTerrain.minHeight);
+            totalMouseDelta -= Event.current.delta.y;
+
+            newPillarTopHeight = Vector3.Dot(terrain.transform.up, createPlanePoint);
+            newPillarTopHeight += (totalMouseDelta / Screen.height) * (terrain.maxHeight - terrain.minHeight);
+            newPillarTopHeight = Mathf.Clamp(newPillarTopHeight, terrain.minHeight, terrain.maxHeight);
         }
 
         foreach (HexGrid.Coord newPillarCoord in newPillarCoords)
@@ -223,16 +232,22 @@ public class HexTerrainEditor : Editor
 
     void ChooseBottomHeight(HexTerrainEditable terrain)
     {
+        HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
+
         if (Event.current.isMouse)
         {
-            newPillarBottomHeight += Event.current.delta.y / Screen.height * (selectedTerrain.maxHeight - selectedTerrain.minHeight);
-            newPillarBottomHeight = Mathf.Clamp(newPillarBottomHeight, selectedTerrain.maxHeight, selectedTerrain.minHeight);
+            totalMouseDelta -= Event.current.delta.y;
+
+            newPillarBottomHeight = newPillarTopHeight;
+            newPillarBottomHeight += (totalMouseDelta / Screen.height) * (terrain.maxHeight - terrain.minHeight);
+            newPillarBottomHeight = Mathf.Clamp(newPillarBottomHeight, terrain.minHeight, newPillarTopHeight);
         }
 
         foreach (HexGrid.Coord newPillarCoord in newPillarCoords)
         {
             Handles.color = new Color(0f, 1f, 0.75f);
             DrawVerticalLinesAtCoord(terrain, newPillarCoord);
+            DrawRingAtCoord(terrain, newPillarCoord, newPillarTopHeight);
             DrawRingAtCoord(terrain, newPillarCoord, newPillarBottomHeight);
         }
 
