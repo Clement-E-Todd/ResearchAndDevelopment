@@ -6,7 +6,7 @@ using System.Collections.Generic;
 [CanEditMultipleObjects]
 public class HexTerrainEditor : Editor
 {
-    HexTerrainEditable selectedTerrain = null;
+    HexTerrain selectedTerrain = null;
 
     bool terrainElementsSelected = false;
     public bool editorControlsVisible = true;
@@ -28,6 +28,7 @@ public class HexTerrainEditor : Editor
         ChooseBottomHeight
     }
     CreationState currentCreationState = CreationState.None;
+    CreationState previousCreationState = CreationState.None;
 
     void Awake()
     {
@@ -69,13 +70,13 @@ public class HexTerrainEditor : Editor
 
         foreach (Transform transform in Selection.transforms)
         {
-            if (transform.GetComponent<HexTerrainEditable>() ||
+            if (transform.GetComponent<HexTerrain>() ||
                 transform.GetComponent<HexPillarEditable>() ||
                 transform.GetComponent<HexPillarCornerEditable>())
             {
-                if (transform.GetComponent<HexTerrainEditable>() && (!selectedTerrain || Selection.activeTransform == transform))
+                if (transform.GetComponent<HexTerrain>() && (!selectedTerrain || Selection.activeTransform == transform))
                 {
-                    selectedTerrain = transform.GetComponent<HexTerrainEditable>();
+                    selectedTerrain = transform.GetComponent<HexTerrain>();
                 }
 
                 if (!selectedTerrain && transform.GetComponent<HexPillarEditable>())
@@ -96,14 +97,15 @@ public class HexTerrainEditor : Editor
         if (terrainElementsSelected)
         {
             OnTerrainElementsDeselected();
+            terrainElementsSelected = false;
         }
 
-        terrainElementsSelected = false;
         return false;
     }
 
     void OnTerrainElementsDeselected()
     {
+        currentCreationState = CreationState.None;
         Tools.hidden = false;
     }
 
@@ -111,17 +113,15 @@ public class HexTerrainEditor : Editor
     {
         editorControlsVisible = (state == CreationState.None);
         totalMouseDelta = 0f;
+        Tools.hidden = (state != CreationState.None);
     }
 
-    void OnCreationStateEnd(CreationState end)
+    void OnCreationStateEnd(CreationState state)
     {
-
     }
 
     void UpdateCreationState()
     {
-        CreationState previousCreationState = currentCreationState;
-
         switch (currentCreationState)
         {
             case CreationState.ChooseHorizontalPosition:
@@ -142,9 +142,11 @@ public class HexTerrainEditor : Editor
             OnCreationStateEnd(previousCreationState);
             OnCreationStateBegin(currentCreationState);
         }
+
+        previousCreationState = currentCreationState;
     }
 
-    void ChooseHorizontalPosition(HexTerrainEditable terrain)
+    void ChooseHorizontalPosition(HexTerrain terrain)
     {
         if (!Camera.current)
         {
@@ -194,15 +196,16 @@ public class HexTerrainEditor : Editor
             foreach (HexGrid.Coord newPillarCoord in newPillarCoords)
             {
                 Handles.color = new Color(0f, 1f, 0.75f);
-                DrawHorizontalPlacementWidget(terrain, newPillarCoord, false);
+                DrawRingAtCoord(coord, Vector3.Dot(selectedTerrain.transform.up, createPlanePoint));
             }
 
             Handles.color = new Color(0f, 1f, 0.5f);
-            DrawHorizontalPlacementWidget(terrain, coord, true);
+            DrawVerticalLinesAtCoord(coord);
+            DrawRingAtCoord(coord, Vector3.Dot(selectedTerrain.transform.up, createPlanePoint));
         }
     }
 
-    void ChooseTopHeight(HexTerrainEditable terrain)
+    void ChooseTopHeight(HexTerrain terrain)
     {
         HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
 
@@ -218,8 +221,8 @@ public class HexTerrainEditor : Editor
         foreach (HexGrid.Coord newPillarCoord in newPillarCoords)
         {
             Handles.color = new Color(0f, 1f, 0.75f);
-            DrawVerticalLinesAtCoord(terrain, newPillarCoord);
-            DrawRingAtCoord(terrain, newPillarCoord, newPillarTopHeight);
+            DrawVerticalLinesAtCoord(newPillarCoord);
+            DrawRingAtCoord(newPillarCoord, newPillarTopHeight);
         }
 
         if (Event.current.type == EventType.MouseUp && Event.current.button == 0)
@@ -230,7 +233,7 @@ public class HexTerrainEditor : Editor
         }
     }
 
-    void ChooseBottomHeight(HexTerrainEditable terrain)
+    void ChooseBottomHeight(HexTerrain terrain)
     {
         HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
 
@@ -246,9 +249,9 @@ public class HexTerrainEditor : Editor
         foreach (HexGrid.Coord newPillarCoord in newPillarCoords)
         {
             Handles.color = new Color(0f, 1f, 0.75f);
-            DrawVerticalLinesAtCoord(terrain, newPillarCoord);
-            DrawRingAtCoord(terrain, newPillarCoord, newPillarTopHeight);
-            DrawRingAtCoord(terrain, newPillarCoord, newPillarBottomHeight);
+            DrawVerticalLinesAtCoord(newPillarCoord);
+            DrawRingAtCoord(newPillarCoord, newPillarTopHeight);
+            DrawRingAtCoord(newPillarCoord, newPillarBottomHeight);
         }
 
         if (Event.current.type == EventType.MouseUp && Event.current.button == 0)
@@ -264,17 +267,17 @@ public class HexTerrainEditor : Editor
     }
 
 
-    void DrawVerticalLinesAtCoord(HexTerrain terrain, HexGrid.Coord coord)
+    void DrawVerticalLinesAtCoord(HexGrid.Coord coord)
     {
-        Plane topPlane = new Plane(terrain.transform.up, terrain.transform.position + terrain.transform.up * terrain.maxHeight);
-        Plane bottomPlane = new Plane(terrain.transform.up, terrain.transform.position + terrain.transform.up * terrain.minHeight);
+        Plane topPlane = new Plane(selectedTerrain.transform.up, selectedTerrain.transform.position + selectedTerrain.transform.up * selectedTerrain.maxHeight);
+        Plane bottomPlane = new Plane(selectedTerrain.transform.up, selectedTerrain.transform.position + selectedTerrain.transform.up * selectedTerrain.minHeight);
 
-        Vector3 hexLocalPosition = terrain.GetLocalPositionForCoord(coord);
+        Vector3 hexLocalPosition = selectedTerrain.GetLocalPositionForCoord(coord);
 
         for (HexCorner corner = 0; corner < HexCorner.MAX; ++corner)
         {
-            Vector3 cornerLocalPosition = hexLocalPosition + HexHelper.GetCornerDirection(corner) * terrain.hexRadius;
-            Vector3 cornerWorldPosition = terrain.transform.TransformPoint(cornerLocalPosition);
+            Vector3 cornerLocalPosition = hexLocalPosition + HexHelper.GetCornerDirection(corner) * selectedTerrain.hexRadius;
+            Vector3 cornerWorldPosition = selectedTerrain.transform.TransformPoint(cornerLocalPosition);
 
             Handles.DrawLine(
                     cornerWorldPosition - topPlane.normal * topPlane.GetDistanceToPoint(cornerWorldPosition),
@@ -282,24 +285,25 @@ public class HexTerrainEditor : Editor
         }
     }
 
-    void DrawRingAtCoord(HexTerrain terrain, HexGrid.Coord coord, float height)
+    void DrawRingAtCoord(HexGrid.Coord coord, float height)
     {
-        Vector3 hexLocalPosition = terrain.GetLocalPositionForCoord(coord);
+        Vector3 hexLocalPosition = selectedTerrain.GetLocalPositionForCoord(coord);
+        height = Mathf.Clamp(height, selectedTerrain.minHeight, selectedTerrain.maxHeight);
 
         // Outter ring
         for (HexCorner corner = 0; corner < HexCorner.MAX; ++corner)
         {
-            Vector3 corner1LocalPosition = hexLocalPosition + HexHelper.GetCornerDirection(corner) * terrain.hexRadius;
+            Vector3 corner1LocalPosition = hexLocalPosition + HexHelper.GetCornerDirection(corner) * selectedTerrain.hexRadius;
             corner1LocalPosition.y = height;
-            Vector3 corner1WorldPosition = terrain.transform.TransformPoint(corner1LocalPosition);
+            Vector3 corner1WorldPosition = selectedTerrain.transform.TransformPoint(corner1LocalPosition);
 
             HexCorner nextCorner = corner + 1;
             if (nextCorner == HexCorner.MAX)
                 nextCorner = 0;
 
-            Vector3 corner2LocalPosition = hexLocalPosition + HexHelper.GetCornerDirection(nextCorner) * terrain.hexRadius;
+            Vector3 corner2LocalPosition = hexLocalPosition + HexHelper.GetCornerDirection(nextCorner) * selectedTerrain.hexRadius;
             corner2LocalPosition.y = height;
-            Vector3 corner2WorldPosition = terrain.transform.TransformPoint(corner2LocalPosition);
+            Vector3 corner2WorldPosition = selectedTerrain.transform.TransformPoint(corner2LocalPosition);
 
             Handles.DrawLine(corner1WorldPosition, corner2WorldPosition);
         }
@@ -307,30 +311,19 @@ public class HexTerrainEditor : Editor
         // Inner ring
         for (HexCorner corner = 0; corner < HexCorner.MAX; ++corner)
         {
-            Vector3 corner1LocalPosition = hexLocalPosition + HexHelper.GetCornerDirection(corner) * terrain.hexRadius / 2f;
+            Vector3 corner1LocalPosition = hexLocalPosition + HexHelper.GetCornerDirection(corner) * selectedTerrain.hexRadius / 2f;
             corner1LocalPosition.y = height;
-            Vector3 corner1WorldPosition = terrain.transform.TransformPoint(corner1LocalPosition);
+            Vector3 corner1WorldPosition = selectedTerrain.transform.TransformPoint(corner1LocalPosition);
 
             HexCorner nextCorner = corner + 1;
             if (nextCorner == HexCorner.MAX)
                 nextCorner = 0;
 
-            Vector3 corner2LocalPosition = hexLocalPosition + HexHelper.GetCornerDirection(nextCorner) * terrain.hexRadius / 2f;
+            Vector3 corner2LocalPosition = hexLocalPosition + HexHelper.GetCornerDirection(nextCorner) * selectedTerrain.hexRadius / 2f;
             corner2LocalPosition.y = height;
-            Vector3 corner2WorldPosition = terrain.transform.TransformPoint(corner2LocalPosition);
+            Vector3 corner2WorldPosition = selectedTerrain.transform.TransformPoint(corner2LocalPosition);
 
             Handles.DrawLine(corner1WorldPosition, corner2WorldPosition);
-        }
-    }
-
-    void DrawHorizontalPlacementWidget(HexTerrain terrain, HexGrid.Coord coord, bool drawVerticalLines)
-    {
-        if (drawVerticalLines)
-            DrawVerticalLinesAtCoord(terrain, coord);
-
-        for (float height = terrain.minHeight; height <= terrain.maxHeight; height += terrain.hexRadius)
-        {
-            DrawRingAtCoord(terrain, coord, height);
         }
     }
 

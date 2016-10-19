@@ -6,7 +6,7 @@ using System.Collections.Generic;
 [RequireComponent(typeof(MeshRenderer))]
 public class HexPillarEditable : MonoBehaviour
 {
-    public HexTerrainEditable owner { get; private set; }
+    public HexTerrain owner { get; private set; }
     public HexPillarInfo pillarInfo { get; private set; }
     public HexGrid.Coord coord { get; private set; }
 
@@ -18,7 +18,7 @@ public class HexPillarEditable : MonoBehaviour
         Undo.undoRedoPerformed += OnUndoRedo;
     }
 
-    public void Init(HexTerrainEditable owner, HexPillarInfo pillarInfo, HexGrid.Coord coord)
+    public void Init(HexTerrain owner, HexPillarInfo pillarInfo, HexGrid.Coord coord)
     {
         this.owner = owner;
         this.pillarInfo = pillarInfo;
