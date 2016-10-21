@@ -71,22 +71,27 @@ public class HexTerrainEditor : Editor
         foreach (Transform transform in Selection.transforms)
         {
             if (transform.GetComponent<HexTerrain>() ||
-                transform.GetComponent<HexPillarEditable>() ||
-                transform.GetComponent<HexPillarCornerEditable>())
+                transform.GetComponent<HexPillar>() ||
+                transform.GetComponent<HexPillarCorner>())
             {
                 if (transform.GetComponent<HexTerrain>() && (!selectedTerrain || Selection.activeTransform == transform))
                 {
                     selectedTerrain = transform.GetComponent<HexTerrain>();
                 }
 
-                if (!selectedTerrain && transform.GetComponent<HexPillarEditable>())
+                if (!selectedTerrain && transform.GetComponent<HexPillar>())
                 {
-                    selectedTerrain = transform.GetComponent<HexPillarEditable>().owner;
+                    selectedTerrain = transform.GetComponent<HexPillar>().terrain;
                 }
 
-                if (!selectedTerrain && transform.GetComponent<HexPillarCornerEditable>())
+                if (!selectedTerrain && transform.GetComponent<HexPillarEnd>())
                 {
-                    selectedTerrain = transform.GetComponent<HexPillarCornerEditable>().owner.owner;
+                    selectedTerrain = transform.GetComponent<HexPillarEnd>().pillar.terrain;
+                }
+
+                if (!selectedTerrain && transform.GetComponent<HexPillarCorner>())
+                {
+                    selectedTerrain = transform.GetComponent<HexPillarCorner>().end.pillar.terrain;
                 }
 
                 terrainElementsSelected = true;
@@ -276,9 +281,9 @@ public class HexTerrainEditor : Editor
 
         Vector3 hexLocalPosition = selectedTerrain.GetLocalPositionForCoord(coord);
 
-        for (HexCorner corner = 0; corner < HexCorner.MAX; ++corner)
+        for (HexCornerDirection direction = 0; direction < HexCornerDirection.MAX; ++direction)
         {
-            Vector3 cornerLocalPosition = hexLocalPosition + HexHelper.GetCornerDirection(corner) * selectedTerrain.hexRadius;
+            Vector3 cornerLocalPosition = hexLocalPosition + HexHelper.GetCornerDirectionVector(direction) * selectedTerrain.hexRadius;
             Vector3 cornerWorldPosition = selectedTerrain.transform.TransformPoint(cornerLocalPosition);
 
             Handles.DrawLine(
@@ -293,17 +298,17 @@ public class HexTerrainEditor : Editor
         height = Mathf.Clamp(height, selectedTerrain.minHeight, selectedTerrain.maxHeight);
 
         // Outter ring
-        for (HexCorner corner = 0; corner < HexCorner.MAX; ++corner)
+        for (HexCornerDirection direction = 0; direction < HexCornerDirection.MAX; ++direction)
         {
-            Vector3 corner1LocalPosition = hexLocalPosition + HexHelper.GetCornerDirection(corner) * selectedTerrain.hexRadius;
+            Vector3 corner1LocalPosition = hexLocalPosition + HexHelper.GetCornerDirectionVector(direction) * selectedTerrain.hexRadius;
             corner1LocalPosition.y = height;
             Vector3 corner1WorldPosition = selectedTerrain.transform.TransformPoint(corner1LocalPosition);
 
-            HexCorner nextCorner = corner + 1;
-            if (nextCorner == HexCorner.MAX)
-                nextCorner = 0;
+            HexCornerDirection nextDirection = direction + 1;
+            if (nextDirection == HexCornerDirection.MAX)
+                nextDirection = 0;
 
-            Vector3 corner2LocalPosition = hexLocalPosition + HexHelper.GetCornerDirection(nextCorner) * selectedTerrain.hexRadius;
+            Vector3 corner2LocalPosition = hexLocalPosition + HexHelper.GetCornerDirectionVector(nextDirection) * selectedTerrain.hexRadius;
             corner2LocalPosition.y = height;
             Vector3 corner2WorldPosition = selectedTerrain.transform.TransformPoint(corner2LocalPosition);
 
@@ -311,17 +316,17 @@ public class HexTerrainEditor : Editor
         }
 
         // Inner ring
-        for (HexCorner corner = 0; corner < HexCorner.MAX; ++corner)
+        for (HexCornerDirection direction = 0; direction < HexCornerDirection.MAX; ++direction)
         {
-            Vector3 corner1LocalPosition = hexLocalPosition + HexHelper.GetCornerDirection(corner) * selectedTerrain.hexRadius / 2f;
+            Vector3 corner1LocalPosition = hexLocalPosition + HexHelper.GetCornerDirectionVector(direction) * selectedTerrain.hexRadius / 2f;
             corner1LocalPosition.y = height;
             Vector3 corner1WorldPosition = selectedTerrain.transform.TransformPoint(corner1LocalPosition);
 
-            HexCorner nextCorner = corner + 1;
-            if (nextCorner == HexCorner.MAX)
-                nextCorner = 0;
+            HexCornerDirection nextDirection = direction + 1;
+            if (nextDirection == HexCornerDirection.MAX)
+                nextDirection = 0;
 
-            Vector3 corner2LocalPosition = hexLocalPosition + HexHelper.GetCornerDirection(nextCorner) * selectedTerrain.hexRadius / 2f;
+            Vector3 corner2LocalPosition = hexLocalPosition + HexHelper.GetCornerDirectionVector(nextDirection) * selectedTerrain.hexRadius / 2f;
             corner2LocalPosition.y = height;
             Vector3 corner2WorldPosition = selectedTerrain.transform.TransformPoint(corner2LocalPosition);
 

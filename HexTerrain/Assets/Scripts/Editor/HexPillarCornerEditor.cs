@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEditor;
 
-[CustomEditor(typeof(HexPillarCornerEditable))]
+[CustomEditor(typeof(HexPillarCorner))]
 [CanEditMultipleObjects]
 public class HexPillarCornerEditor : Editor
 {
@@ -11,7 +11,7 @@ public class HexPillarCornerEditor : Editor
 
         foreach (GameObject selectedObject in Selection.gameObjects)
         {
-            HexPillarCornerEditable selectedCorner = selectedObject.GetComponent<HexPillarCornerEditable>();
+            HexPillarCorner selectedCorner = selectedObject.GetComponent<HexPillarCorner>();
 
             if (!selectedCorner)
                 continue;
@@ -21,8 +21,6 @@ public class HexPillarCornerEditor : Editor
             if (delta != 0f)
             {
                 MoveSelectedCorners(delta);
-                selectedCorner.owner.pillarInfo.topEnd.SnapPointsToIncrement(selectedCorner.owner.owner.heightSnap);
-                selectedCorner.owner.pillarInfo.bottomEnd.SnapPointsToIncrement(selectedCorner.owner.owner.heightSnap);
                 redraw = true;
             }
         }
@@ -33,7 +31,7 @@ public class HexPillarCornerEditor : Editor
         }
     }
 
-    float Handle(HexPillarCornerEditable cornerObject)
+    float Handle(HexPillarCorner cornerObject)
     {
         Handles.color = new Color(1.0f, 0.25f, 0f);
 
@@ -48,8 +46,15 @@ public class HexPillarCornerEditor : Editor
             0f);
         if (EditorGUI.EndChangeCheck())
         {
-            Undo.RecordObject(cornerObject.owner.pillarInfo.topEnd, "Edit Pillar Corner");
-            Undo.RecordObject(cornerObject.owner.pillarInfo.bottomEnd, "Edit Pillar Corner");
+            foreach (GameObject selectedObject in Selection.gameObjects)
+            {
+                HexPillarCorner selectedCorner = selectedObject.GetComponent<HexPillarCorner>();
+
+                if (!selectedCorner)
+                    continue;
+
+                Undo.RecordObject(selectedCorner, "Edit Pillar Corner");
+            }
         }
 
         Vector3 positionDelta = positionAfter - cornerObject.transform.position;
@@ -60,19 +65,17 @@ public class HexPillarCornerEditor : Editor
     {
         foreach (GameObject selectedObject in Selection.gameObjects)
         {
-            HexPillarCornerEditable selectedCorner = selectedObject.GetComponent<HexPillarCornerEditable>();
+            HexPillarCorner selectedCorner = selectedObject.GetComponent<HexPillarCorner>();
 
             if (!selectedCorner)
                 continue;
             
             if (selectedCorner.isOnTopEnd)
-                selectedCorner.owner.pillarInfo.topEnd.cornerHeights[(int)selectedCorner.corner] = Mathf.Max(
-                    selectedCorner.owner.pillarInfo.topEnd.cornerHeights[(int)selectedCorner.corner] + amount,
-                    selectedCorner.owner.pillarInfo.bottomEnd.cornerHeights[(int)selectedCorner.corner]);
+                selectedCorner.height = Mathf.Max(selectedCorner.height + amount, selectedCorner.end.pillar.bottomEnd.corners[(int)selectedCorner.corner].height);
             else
-                selectedCorner.owner.pillarInfo.bottomEnd.cornerHeights[(int)selectedCorner.corner] = Mathf.Min(
-                    selectedCorner.owner.pillarInfo.bottomEnd.cornerHeights[(int)selectedCorner.corner] + amount,
-                    selectedCorner.owner.pillarInfo.topEnd.cornerHeights[(int)selectedCorner.corner]);
+                selectedCorner.height = Mathf.Min(selectedCorner.height + amount, selectedCorner.end.pillar.topEnd.corners[(int)selectedCorner.corner].height);
+
+            selectedCorner.height = Mathf.Round(selectedCorner.height / selectedCorner.end.pillar.terrain.heightSnap) * selectedCorner.end.pillar.terrain.heightSnap;
         }
     }
 
@@ -80,7 +83,7 @@ public class HexPillarCornerEditor : Editor
     {
         foreach (GameObject selectedObject in Selection.gameObjects)
         {
-            HexPillarEditable selection = selectedObject.GetComponent<HexPillarEditable>();
+            HexPillar selection = selectedObject.GetComponent<HexPillar>();
 
             if (!selection)
                 continue;

@@ -15,80 +15,72 @@ public class HexTerrain : MonoBehaviour
 
     public HexTerrainPillarGrid pillarGrid = new HexTerrainPillarGrid();
 
-    public Dictionary<HexPillarInfo, HexPillarEditable> pillarObjects = new Dictionary<HexPillarInfo, HexPillarEditable>();
-
     const int sidesPerHex = 6;
 
     public void AddPillar(HexGrid.Coord coord, float topHeight = 1f, float bottomHeight = 0f)
     {
-        HexPillarInfo pillarInfo = ScriptableObject.CreateInstance<HexPillarInfo>();
+        GameObject pillarObject = new GameObject();
+        pillarObject.name = string.Format("Pillar [{0}, {1}]", coord.x, coord.y);
+        pillarObject.transform.SetParent(transform);
+        pillarObject.transform.localPosition = GetLocalPositionForCoord(coord);
 
-        pillarInfo.topEnd.SetFlatHeight(topHeight);
-        pillarInfo.bottomEnd.SetFlatHeight(bottomHeight);
+        pillarObject.AddComponent<MeshFilter>();
+        pillarObject.AddComponent<MeshRenderer>();
+
+        HexPillar pillar = pillarObject.AddComponent<HexPillar>();
+        pillar.Init(this, coord);
+        
+        if (!pillarGrid.ContainsItemAtCoord(coord))
+        {
+            pillarGrid.Add(coord, new List<HexPillar>());
+        }
+        pillarGrid[coord].Add(pillar);
+
+        if (pillarGrid[coord].Count > 1)
+        {
+            pillarGrid[coord] = pillarGrid[coord].OrderBy(x => (x.topEnd.centerHeight + x.bottomEnd.centerHeight) / 2).ToList();
+
+            for (int i = 0; i < pillarGrid[coord].Count; ++i)
+            {
+                pillarGrid[coord][i].name = string.Format("Pillar [{0}, {1}] #{2}", coord.x, coord.y, i);
+            }
+        }
+        else
+        {
+            pillarGrid[coord][0].name = string.Format("Pillar [{0}, {1}]", coord.x, coord.y);
+        }
+
+        pillar.topEnd.SetFlatHeight(topHeight);
+        pillar.bottomEnd.SetFlatHeight(bottomHeight);
 
         if (floorMaterials.Length > 0)
-            pillarInfo.topMaterial = floorMaterials[Random.Range(0, floorMaterials.Length)];
+            pillar.topMaterial = floorMaterials[Random.Range(0, floorMaterials.Length)];
 
         if (ceilingMaterials.Length > 0)
-            pillarInfo.bottomMaterial = ceilingMaterials[Random.Range(0, ceilingMaterials.Length)];
+            pillar.bottomMaterial = ceilingMaterials[Random.Range(0, ceilingMaterials.Length)];
 
         if (wallMaterials.Length > 0)
         {
-            for (HexEdge edge = 0; edge < HexEdge.MAX; ++edge)
+            for (HexEdgeDirection edgeDirection = 0; edgeDirection < HexEdgeDirection.MAX; ++edgeDirection)
             {
-                pillarInfo.wallMaterials[(int)edge] = wallMaterials[Random.Range(0, wallMaterials.Length)];
+                pillar.wallMaterials[(int)edgeDirection] = wallMaterials[Random.Range(0, wallMaterials.Length)];
             }
         }
 
-        if (!pillarObjects.ContainsKey(pillarInfo))
-        {
-            if (!pillarGrid.ContainsItemAtCoord(coord))
-            {
-                pillarGrid.Add(coord, new List<HexPillarInfo>());
-            }
-
-            GameObject pillarObject = new GameObject();
-            pillarObject.name = string.Format("Pillar [{0}, {1}]", coord.x, coord.y);
-            pillarObject.transform.SetParent(transform);
-            pillarObject.transform.localPosition = GetLocalPositionForCoord(coord);
-
-            pillarObject.AddComponent<MeshFilter>();
-            pillarObject.AddComponent<MeshRenderer>();
-
-            HexPillarEditable editable = pillarObject.AddComponent<HexPillarEditable>();
-            editable.Init(this, pillarInfo, coord);
-            pillarObjects.Add(pillarInfo, editable);
-            pillarGrid[coord].Add(pillarInfo);
-
-            if (pillarGrid[coord].Count > 1)
-            {
-                pillarGrid[coord] = pillarGrid[coord].OrderBy(x => (x.topEnd.centerHeight + x.bottomEnd.centerHeight) / 2).ToList();
-
-                for (int i = 0; i < pillarGrid[coord].Count; ++i)
-                {
-                    pillarObjects[pillarGrid[coord][i]].name = string.Format("Pillar [{0}, {1}] #{2}", coord.x, coord.y, i);
-                }
-            }
-            else
-            {
-                pillarObjects[pillarGrid[coord][0]].name = string.Format("Pillar [{0}, {1}]", coord.x, coord.y);
-            }
-
-            editable.GenerateMesh();
-        }
+        pillar.GenerateMesh();
     }
 
     public Vector3 GetLocalPositionForCoord(HexGrid.Coord coord, float height = 0f)
     {
-        Vector3 xDirection = HexHelper.GetEdgeCenterOffset(HexEdge.SouthEast) * 2;
-        Vector3 yDirection = HexHelper.GetEdgeCenterOffset(HexEdge.NorthEast) * 2;
+        Vector3 xDirection = HexHelper.GetEdgeCenterOffset(HexEdgeDirection.SouthEast, hexRadius) * 2;
+        Vector3 yDirection = HexHelper.GetEdgeCenterOffset(HexEdgeDirection.NorthEast, hexRadius) * 2;
         return (xDirection * coord.x) + (yDirection * coord.y) + (transform.up * height);
     }
 
     public HexGrid.Coord GetCoordForLocalPosition(Vector3 localPosition)
     {
-        Vector3 xDirection = HexHelper.GetEdgeCenterOffset(HexEdge.SouthEast) * 2;
-        Vector3 yDirection = HexHelper.GetEdgeCenterOffset(HexEdge.NorthEast) * 2;
+        Vector3 xDirection = HexHelper.GetEdgeCenterOffset(HexEdgeDirection.SouthEast, hexRadius) * 2;
+        Vector3 yDirection = HexHelper.GetEdgeCenterOffset(HexEdgeDirection.NorthEast, hexRadius) * 2;
 
         Ray xRay = new Ray(transform.up * Vector3.Dot(transform.up, localPosition), xDirection.normalized);
         Plane yPlane = new Plane(Vector3.Cross(yDirection.normalized, transform.up), localPosition);
@@ -115,9 +107,9 @@ public class HexTerrain : MonoBehaviour
         return GetCoordForLocalPosition(transform.InverseTransformPoint(worldPosition));
     }
 
-    bool TryGetCoordForPillar(HexPillarInfo pillar, out HexGrid.Coord coord)
+    bool TryGetCoordForPillar(HexPillar pillar, out HexGrid.Coord coord)
     {
-        foreach (List<HexPillarInfo> pillarsInHex in pillarGrid)
+        foreach (List<HexPillar> pillarsInHex in pillarGrid)
         {
             if (pillarsInHex.Contains(pillar))
             {

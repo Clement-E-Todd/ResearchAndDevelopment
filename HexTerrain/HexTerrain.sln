@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2015
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HexTerrain.CSharp", "HexTerrain.CSharp.csproj", "{6DD7CAA2-556E-5DD4-08DB-DF0A832BFBBB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HexTerrain.CSharp.Editor", "HexTerrain.CSharp.Editor.csproj", "{618EB8E0-490E-61EE-F6BC-8956B2CBD0AE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -13,6 +15,10 @@ Global
 		{6DD7CAA2-556E-5DD4-08DB-DF0A832BFBBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6DD7CAA2-556E-5DD4-08DB-DF0A832BFBBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6DD7CAA2-556E-5DD4-08DB-DF0A832BFBBB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{618EB8E0-490E-61EE-F6BC-8956B2CBD0AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{618EB8E0-490E-61EE-F6BC-8956B2CBD0AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{618EB8E0-490E-61EE-F6BC-8956B2CBD0AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{618EB8E0-490E-61EE-F6BC-8956B2CBD0AE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

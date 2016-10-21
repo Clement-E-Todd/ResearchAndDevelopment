@@ -3,13 +3,13 @@ using UnityEditor;
 using System.Collections.Generic;
 using System.Linq;
 
-[CustomEditor(typeof(HexPillarEditable))]
+[CustomEditor(typeof(HexPillar))]
 [CanEditMultipleObjects]
 public class HexPillarEditor : Editor
 {
     public void OnSceneGUI()
     {
-        HexPillarEditable selectedPillar = Selection.activeGameObject ? Selection.activeGameObject.GetComponent<HexPillarEditable>() : null;
+        HexPillar selectedPillar = Selection.activeGameObject ? Selection.activeGameObject.GetComponent<HexPillar>() : null;
 
         if (!selectedPillar)
         {
@@ -24,24 +24,24 @@ public class HexPillarEditor : Editor
 
         foreach (GameObject selectedObject in Selection.gameObjects)
         {
-            HexPillarEditable selection = selectedObject.GetComponent<HexPillarEditable>();
+            HexPillar selection = selectedObject.GetComponent<HexPillar>();
 
             if (!selection)
                 continue;
 
-            for (HexCorner corner = 0; corner < HexCorner.MAX; ++corner)
+            for (HexCornerDirection direction = 0; direction < HexCornerDirection.MAX; ++direction)
             {
-                CornerButton(selection, corner, true);
-                CornerButton(selection, corner, false);
+                CornerButton(selection, direction, true);
+                CornerButton(selection, direction, false);
             }
         }
     }
 
-    void TopHandle(HexPillarEditable selectedPillar)
+    void TopHandle(HexPillar selectedPillar)
     {
         float delta = Handle(
             selectedPillar,
-            new Vector3(0, selectedPillar.pillarInfo.topEnd.centerHeight, 0),
+            new Vector3(0, selectedPillar.topEnd.centerHeight, 0),
             Vector3.up);
 
         if (delta != 0f)
@@ -51,9 +51,9 @@ public class HexPillarEditor : Editor
         }
     }
 
-    void MiddleHandle(HexPillarEditable selectedPillar)
+    void MiddleHandle(HexPillar selectedPillar)
     {
-        float height = (selectedPillar.pillarInfo.topEnd.centerHeight + selectedPillar.pillarInfo.bottomEnd.centerHeight) / 2;
+        float height = (selectedPillar.topEnd.centerHeight + selectedPillar.bottomEnd.centerHeight) / 2;
 
         float delta = Handle(
             selectedPillar,
@@ -70,11 +70,11 @@ public class HexPillarEditor : Editor
         }
     }
 
-    void BottomHandle(HexPillarEditable selectedPillar)
+    void BottomHandle(HexPillar selectedPillar)
     {
         float delta = Handle(
             selectedPillar,
-            new Vector3(0, selectedPillar.pillarInfo.bottomEnd.centerHeight, 0),
+            new Vector3(0, selectedPillar.bottomEnd.centerHeight, 0),
             Vector3.down);
 
         if (delta != 0f)
@@ -85,7 +85,7 @@ public class HexPillarEditor : Editor
     }
 
     float Handle(
-        HexPillarEditable pillar,
+        HexPillar pillar,
         Vector3 localPosition,
         Vector3 localDirection,
         float size = 1f,
@@ -103,8 +103,8 @@ public class HexPillarEditor : Editor
         Vector3 positionAfter = Handles.Slider(positionBefore, direction, size, cap, 0f);
         if (EditorGUI.EndChangeCheck())
         {
-            Undo.RecordObject(pillar.pillarInfo.topEnd, "Edit Pillar");
-            Undo.RecordObject(pillar.pillarInfo.bottomEnd, "Edit Pillar");
+            Undo.RecordObject(pillar.topEnd, "Edit Pillar");
+            Undo.RecordObject(pillar.bottomEnd, "Edit Pillar");
         }
 
         Vector3 positionDelta = positionAfter - positionBefore;
@@ -115,19 +115,19 @@ public class HexPillarEditor : Editor
     {
         foreach (GameObject selectedObject in Selection.gameObjects)
         {
-            HexPillarEditable selectedPillar = selectedObject.GetComponent<HexPillarEditable>();
+            HexPillar selectedPillar = selectedObject.GetComponent<HexPillar>();
 
             if (!selectedPillar)
                 continue;
 
-            selectedPillar.pillarInfo.topEnd.centerHeight = Mathf.Max(selectedPillar.pillarInfo.topEnd.centerHeight + amount, selectedPillar.pillarInfo.bottomEnd.centerHeight);
+            selectedPillar.topEnd.centerHeight = Mathf.Max(selectedPillar.topEnd.centerHeight + amount, selectedPillar.bottomEnd.centerHeight);
 
-            for (int i = 0; i < selectedPillar.pillarInfo.topEnd.cornerHeights.Length; ++i)
+            for (int i = 0; i < selectedPillar.topEnd.corners.Length; ++i)
             {
-                selectedPillar.pillarInfo.topEnd.cornerHeights[i] = Mathf.Max(selectedPillar.pillarInfo.topEnd.cornerHeights[i] + amount, selectedPillar.pillarInfo.bottomEnd.cornerHeights[i]);
+                selectedPillar.topEnd.corners[i].height = Mathf.Max(selectedPillar.topEnd.corners[i].height + amount, selectedPillar.bottomEnd.corners[i].height);
             }
             
-            selectedPillar.pillarInfo.topEnd.SnapPointsToIncrement(selectedPillar.owner.heightSnap);
+            selectedPillar.topEnd.SnapPointsToIncrement(selectedPillar.terrain.heightSnap);
         }
     }
 
@@ -135,25 +135,25 @@ public class HexPillarEditor : Editor
     {
         foreach (GameObject selectedObject in Selection.gameObjects)
         {
-            HexPillarEditable selectedPillar = selectedObject.GetComponent<HexPillarEditable>();
+            HexPillar selectedPillar = selectedObject.GetComponent<HexPillar>();
 
             if (!selectedPillar)
                 continue;
 
-            selectedPillar.pillarInfo.bottomEnd.centerHeight = Mathf.Min(selectedPillar.pillarInfo.bottomEnd.centerHeight - amount, selectedPillar.pillarInfo.topEnd.centerHeight);
+            selectedPillar.bottomEnd.centerHeight = Mathf.Min(selectedPillar.bottomEnd.centerHeight - amount, selectedPillar.topEnd.centerHeight);
 
-            for (int i = 0; i < selectedPillar.pillarInfo.bottomEnd.cornerHeights.Length; ++i)
+            for (int i = 0; i < selectedPillar.bottomEnd.corners.Length; ++i)
             {
-                selectedPillar.pillarInfo.bottomEnd.cornerHeights[i] = Mathf.Min(selectedPillar.pillarInfo.bottomEnd.cornerHeights[i] - amount, selectedPillar.pillarInfo.topEnd.cornerHeights[i]);
+                selectedPillar.bottomEnd.corners[i].height = Mathf.Min(selectedPillar.bottomEnd.corners[i].height - amount, selectedPillar.topEnd.corners[i].height);
             }
 
-            selectedPillar.pillarInfo.bottomEnd.SnapPointsToIncrement(selectedPillar.owner.heightSnap);
+            selectedPillar.bottomEnd.SnapPointsToIncrement(selectedPillar.terrain.heightSnap);
         }
     }
 
-    void CornerButton(HexPillarEditable pillar, HexCorner corner, bool topCorner)
+    void CornerButton(HexPillar pillar, HexCornerDirection cornerDirection, bool topCorner)
     {
-        HexPillarCornerEditable cornerObject = (topCorner ? pillar.topCornerObjects : pillar.bottomCornerObjects)[(int)corner];
+        HexPillarCorner cornerObject = (topCorner ? pillar.topEnd.corners : pillar.bottomEnd.corners)[(int)cornerDirection];
         List<Object> selectedObjects = Selection.objects.ToList();
 
         if (selectedObjects.Contains(cornerObject.gameObject))
@@ -182,7 +182,7 @@ public class HexPillarEditor : Editor
             {
                 foreach (GameObject selectedObject in Selection.objects)
                 {
-                    if (selectedObject.GetComponent<HexPillarCornerEditable>())
+                    if (selectedObject.GetComponent<HexPillarCorner>())
                     {
                         selectedObjects.Remove(selectedObject);
                     }
@@ -199,7 +199,7 @@ public class HexPillarEditor : Editor
     {
         foreach (GameObject selectedObject in Selection.gameObjects)
         {
-            HexPillarEditable selection = selectedObject.GetComponent<HexPillarEditable>();
+            HexPillar selection = selectedObject.GetComponent<HexPillar>();
 
             if (!selection)
                 continue;

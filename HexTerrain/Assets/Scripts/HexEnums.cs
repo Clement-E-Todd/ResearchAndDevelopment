@@ -1,4 +1,7 @@
-﻿public enum HexCorner
+﻿/**
+ * An enum representing the cardinal direction that the corner of a hex is pointing.
+ */
+public enum HexCornerDirection
 {
     East,
     SouthEast,
@@ -9,7 +12,10 @@
     MAX
 }
 
-public enum HexEdge
+/**
+ * An enum representing the cardinal direction that the edge of a hex is facing.
+ */
+public enum HexEdgeDirection
 {
     SouthEast,
     South,

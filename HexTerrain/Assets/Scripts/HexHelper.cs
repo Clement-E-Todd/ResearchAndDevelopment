@@ -1,62 +1,78 @@
 ﻿using UnityEngine;
 
+/*
+ * A static class of handy functions meant to make working with hexigonal data easier.
+ */
 public static class HexHelper
 {
-    public static HexCorner GetOppositeCorner(HexCorner corner)
+    /*
+     * Gets the hex corner direction pointing in the opposite direction of the one passed in.
+     */
+    public static HexCornerDirection GetOppositeCornerDirection(HexCornerDirection corner)
     {
-        HexCorner opposite = (HexCorner)((int)corner + (int)HexCorner.MAX/2);
+        HexCornerDirection opposite = (HexCornerDirection)((int)corner + (int)HexCornerDirection.MAX/2);
 
-        if (opposite >= HexCorner.MAX)
+        if (opposite >= HexCornerDirection.MAX)
         {
-            opposite = (HexCorner)((int)opposite - (int)HexCorner.MAX);
+            opposite = (HexCornerDirection)((int)opposite - (int)HexCornerDirection.MAX);
         }
 
         return opposite;
     }
 
-    public static Vector3 GetCornerDirection(HexCorner corner)
+    /*
+     * Gets a unit-length vector pointing in the direction specified.
+     */
+    public static Vector3 GetCornerDirectionVector(HexCornerDirection direction)
     {
-        float rotation = ((float)corner / (float)HexCorner.MAX) * Mathf.PI * 2;
+        float rotation = ((float)direction / (float)HexCornerDirection.MAX) * Mathf.PI * 2;
         return new Vector3(Mathf.Cos(rotation), 0f, -Mathf.Sin(rotation));
     }
 
-    public static HexCorner[] GetNeighbouringCorners(HexEdge edge)
+    /*
+     * Gets a pair of hex corner direction enums representing either end of the specified edge.
+     */
+    public static HexCornerDirection[] GetCornerDirectionsNextToEdge(HexEdgeDirection edgeDirection)
     {
-        switch (edge)
+        switch (edgeDirection)
         {
-            case HexEdge.SouthEast:
-                return new HexCorner[] { HexCorner.East, HexCorner.SouthEast };
+            case HexEdgeDirection.SouthEast:
+                return new HexCornerDirection[] { HexCornerDirection.East, HexCornerDirection.SouthEast };
 
-            case HexEdge.South:
-                return new HexCorner[] { HexCorner.SouthEast, HexCorner.SouthWest };
+            case HexEdgeDirection.South:
+                return new HexCornerDirection[] { HexCornerDirection.SouthEast, HexCornerDirection.SouthWest };
 
-            case HexEdge.SouthWest:
-                return new HexCorner[] { HexCorner.SouthWest, HexCorner.West };
+            case HexEdgeDirection.SouthWest:
+                return new HexCornerDirection[] { HexCornerDirection.SouthWest, HexCornerDirection.West };
 
-            case HexEdge.NorthWest:
-                return new HexCorner[] { HexCorner.West, HexCorner.NorthWest };
+            case HexEdgeDirection.NorthWest:
+                return new HexCornerDirection[] { HexCornerDirection.West, HexCornerDirection.NorthWest };
 
-            case HexEdge.North:
-                return new HexCorner[] { HexCorner.NorthWest, HexCorner.NorthEast };
+            case HexEdgeDirection.North:
+                return new HexCornerDirection[] { HexCornerDirection.NorthWest, HexCornerDirection.NorthEast };
 
-            case HexEdge.NorthEast:
-                return new HexCorner[] { HexCorner.NorthEast, HexCorner.East };
+            case HexEdgeDirection.NorthEast:
+                return new HexCornerDirection[] { HexCornerDirection.NorthEast, HexCornerDirection.East };
 
             default:
-                return new HexCorner[] { };
+                return new HexCornerDirection[] { };
         }
     }
 
-    public static Vector3 GetEdgeCenterOffset(HexEdge edge)
+    /*
+     * Gets a vector representing the distance between the center of a hex and one of its edges. Note that
+     * the returned vector is NOT necessarily unit length.
+     */
+    public static Vector3 GetEdgeCenterOffset(HexEdgeDirection edge, float hexRadius)
     {
-        HexCorner[] corners = GetNeighbouringCorners(edge);
+        HexCornerDirection[] cornerDirections = GetCornerDirectionsNextToEdge(edge);
 
-        if (corners.Length != 2)
+        if (cornerDirections.Length != 2)
         {
             Debug.LogErrorFormat("Invalid edge \'{0}\'.", edge);
             return Vector3.zero;
         }
 
-        return (GetCornerDirection(corners[0]) + GetCornerDirection(corners[1])) / 2;
+        return ((GetCornerDirectionVector(cornerDirections[0]) + GetCornerDirectionVector(cornerDirections[1])) / 2) * hexRadius;
     }
 }

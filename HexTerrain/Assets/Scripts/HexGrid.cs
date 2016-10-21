@@ -2,63 +2,78 @@
 using System.Collections;
 using System.Collections.Generic;
 
-#warning HexGrid<T> should be reinstated once Unity supports current Mono / .Net versions. (Should be available with Unity 5.5)
+/**
+ * A generic collection which stores data in a hexagonal grid. Where in a normal grid X would
+ * represent horizontal position and Y its vertical position, a HexGrid instead uses X to
+ * represent south-east distance from the origin and Y to represent north-east distance.
+ * 
+ * TODO: Reintroduce this class once Unity supports newer versions of Mono / .Net
+ * (Should supposedly be supported in Unity 5.5)
+ */
 
 /*
 public class HexGrid<T> : IEnumerable<T>
 {
-    public T this[int x, int y]
-    {
-        get { return items[new Coord(x, y)]; }
-        set { items[new Coord(x, y)] = value; }
-    }
+   public T this[int x, int y]
+   {
+       get { return items[new Coord(x, y)]; }
+       set { items[new Coord(x, y)] = value; }
+   }
 
-    private Dictionary<Coord, T> items = new Dictionary<Coord, T>();
+   private Dictionary<Coord, T> items = new Dictionary<Coord, T>();
 
-    private struct Coord
-    {
-        public int x, y;
-        public Coord(int x, int y)
-        {
-            this.x = x;
-            this.y = y;
-        }
-    }
+   private struct Coord
+   {
+       public int x, y;
+       public Coord(int x, int y)
+       {
+           this.x = x;
+           this.y = y;
+       }
+   }
 
-    private Coord GetNeighbourCoordOffset(HexEdge direction)
-    {
-        switch (direction)
-        {
-            case HexEdge.NorthWest:
-                return new Coord(-1, 0);
-            case HexEdge.North:
-                return new Coord(-1, 1);
-            case HexEdge.NorthEast:
-                return new Coord(0, 1);
-            case HexEdge.SouthEast:
-                return new Coord(1, 0);
-            case HexEdge.South:
-                return new Coord(1, -1);
-            case HexEdge.SouthWest:
-                return new Coord(0, -1);
-            default:
-                return new Coord(0, 0);
-        }
-    }
+   private Coord GetNeighbourCoordOffset(HexEdge direction)
+   {
+       switch (direction)
+       {
+           case HexEdge.NorthWest:
+               return new Coord(-1, 0);
+           case HexEdge.North:
+               return new Coord(-1, 1);
+           case HexEdge.NorthEast:
+               return new Coord(0, 1);
+           case HexEdge.SouthEast:
+               return new Coord(1, 0);
+           case HexEdge.South:
+               return new Coord(1, -1);
+           case HexEdge.SouthWest:
+               return new Coord(0, -1);
+           default:
+               return new Coord(0, 0);
+       }
+   }
 
-    public IEnumerator<T> GetEnumerator()
-    {
-        return items.Values.GetEnumerator();
-    }
+   public IEnumerator<T> GetEnumerator()
+   {
+       return items.Values.GetEnumerator();
+   }
 
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return GetEnumerator();
-    }
+   IEnumerator IEnumerable.GetEnumerator()
+   {
+       return GetEnumerator();
+   }
 }
 */
 
-#warning HexGrid<T> should replace these classes once it is reinstated.
+/**
+ * Positional information for a collection which stores data in a hexagonal grid. Where in
+ * a normal grid X would represent horizontal position and Y its vertical position, a
+ * HexGrid instead uses X to represent south-east distance from the origin and Y to
+ * represent north-east distance.
+ * 
+ * TODO: Replace this with HexGrid<T> once Unity supports newer versions of Mono / .Net
+ * (Should supposedly be supported in Unity 5.5)
+ */
 public abstract class HexGrid
 {
     public struct Coord
@@ -71,21 +86,21 @@ public abstract class HexGrid
         }
     }
 
-    public static Coord GetNeighbourCoordOffset(HexEdge direction)
+    public static Coord GetNeighbourCoordOffset(HexEdgeDirection direction)
     {
         switch (direction)
         {
-            case HexEdge.NorthWest:
+            case HexEdgeDirection.NorthWest:
                 return new Coord(-1, 0);
-            case HexEdge.North:
+            case HexEdgeDirection.North:
                 return new Coord(-1, 1);
-            case HexEdge.NorthEast:
+            case HexEdgeDirection.NorthEast:
                 return new Coord(0, 1);
-            case HexEdge.SouthEast:
+            case HexEdgeDirection.SouthEast:
                 return new Coord(1, 0);
-            case HexEdge.South:
+            case HexEdgeDirection.South:
                 return new Coord(1, -1);
-            case HexEdge.SouthWest:
+            case HexEdgeDirection.SouthWest:
                 return new Coord(0, -1);
             default:
                 return new Coord(0, 0);
@@ -93,23 +108,31 @@ public abstract class HexGrid
     }
 }
 
-public class HexTerrainPillarGrid : HexGrid, IEnumerable<List<HexPillarInfo>>
+/**
+ * A collection of HexPillars stored in a hexagonal grid. Where in a normal grid X would
+ * represent horizontal position and Y its vertical position, a HexGrid instead uses X to
+ * represent south-east distance from the origin and Y to represent north-east distance.
+ * 
+ * TODO: Replace this with HexGrid<T> once Unity supports newer versions of Mono / .Net
+ * (Should supposedly be supported in Unity 5.5)
+ */
+public class HexTerrainPillarGrid : HexGrid, IEnumerable<List<HexPillar>>
 {
-    public List<HexPillarInfo> this[Coord coord]
+    public List<HexPillar> this[Coord coord]
     {
         get { return items[coord]; }
         set { items[coord] = value; }
     }
 
-    public List<HexPillarInfo> this[int x, int y]
+    public List<HexPillar> this[int x, int y]
     {
         get { return items[new Coord(x, y)]; }
         set { items[new Coord(x, y)] = value; }
     }
 
-    private Dictionary<Coord, List<HexPillarInfo>> items = new Dictionary<Coord, List<HexPillarInfo>>();
+    private Dictionary<Coord, List<HexPillar>> items = new Dictionary<Coord, List<HexPillar>>();
 
-    public bool Add(Coord coord, List<HexPillarInfo> item)
+    public bool Add(Coord coord, List<HexPillar> item)
     {
         if (items.ContainsKey(coord))
         {
@@ -121,9 +144,9 @@ public class HexTerrainPillarGrid : HexGrid, IEnumerable<List<HexPillarInfo>>
         return true;
     }
 
-    public bool TryGetCoordForItem(List<HexPillarInfo> item, out Coord coord)
+    public bool TryGetCoordForItem(List<HexPillar> item, out Coord coord)
     {
-        foreach (KeyValuePair<Coord, List<HexPillarInfo>> itemPair in items)
+        foreach (KeyValuePair<Coord, List<HexPillar>> itemPair in items)
         {
             if (itemPair.Value == item)
             {
@@ -141,7 +164,7 @@ public class HexTerrainPillarGrid : HexGrid, IEnumerable<List<HexPillarInfo>>
         return items.ContainsKey(coord);
     }
 
-    public IEnumerator<List<HexPillarInfo>> GetEnumerator()
+    public IEnumerator<List<HexPillar>> GetEnumerator()
     {
         return items.Values.GetEnumerator();
     }
