@@ -215,6 +215,7 @@ public class HexTerrainEditor : Editor
 
             newPillarTopHeight = Vector3.Dot(terrain.transform.up, createPlanePoint);
             newPillarTopHeight += (totalMouseDelta / Screen.height) * (terrain.maxHeight - terrain.minHeight);
+            newPillarTopHeight = Mathf.Round(newPillarTopHeight / terrain.heightSnap) * terrain.heightSnap;
             newPillarTopHeight = Mathf.Clamp(newPillarTopHeight, terrain.minHeight, terrain.maxHeight);
         }
 
@@ -243,6 +244,7 @@ public class HexTerrainEditor : Editor
 
             newPillarBottomHeight = newPillarTopHeight;
             newPillarBottomHeight += (totalMouseDelta / Screen.height) * (terrain.maxHeight - terrain.minHeight);
+            newPillarBottomHeight = Mathf.Round(newPillarBottomHeight / terrain.heightSnap) * terrain.heightSnap;
             newPillarBottomHeight = Mathf.Clamp(newPillarBottomHeight, terrain.minHeight, newPillarTopHeight);
         }
 

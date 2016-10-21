@@ -21,6 +21,8 @@ public class HexPillarCornerEditor : Editor
             if (delta != 0f)
             {
                 MoveSelectedCorners(delta);
+                selectedCorner.owner.pillarInfo.topEnd.SnapPointsToIncrement(selectedCorner.owner.owner.heightSnap);
+                selectedCorner.owner.pillarInfo.bottomEnd.SnapPointsToIncrement(selectedCorner.owner.owner.heightSnap);
                 redraw = true;
             }
         }

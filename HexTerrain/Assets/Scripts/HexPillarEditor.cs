@@ -115,17 +115,19 @@ public class HexPillarEditor : Editor
     {
         foreach (GameObject selectedObject in Selection.gameObjects)
         {
-            HexPillarEditable selection = selectedObject.GetComponent<HexPillarEditable>();
+            HexPillarEditable selectedPillar = selectedObject.GetComponent<HexPillarEditable>();
 
-            if (!selection)
+            if (!selectedPillar)
                 continue;
 
-            selection.pillarInfo.topEnd.centerHeight = Mathf.Max(selection.pillarInfo.topEnd.centerHeight + amount, selection.pillarInfo.bottomEnd.centerHeight);
+            selectedPillar.pillarInfo.topEnd.centerHeight = Mathf.Max(selectedPillar.pillarInfo.topEnd.centerHeight + amount, selectedPillar.pillarInfo.bottomEnd.centerHeight);
 
-            for (int i = 0; i < selection.pillarInfo.topEnd.cornerHeights.Length; ++i)
+            for (int i = 0; i < selectedPillar.pillarInfo.topEnd.cornerHeights.Length; ++i)
             {
-                selection.pillarInfo.topEnd.cornerHeights[i] = Mathf.Max(selection.pillarInfo.topEnd.cornerHeights[i] + amount, selection.pillarInfo.bottomEnd.cornerHeights[i]);
+                selectedPillar.pillarInfo.topEnd.cornerHeights[i] = Mathf.Max(selectedPillar.pillarInfo.topEnd.cornerHeights[i] + amount, selectedPillar.pillarInfo.bottomEnd.cornerHeights[i]);
             }
+            
+            selectedPillar.pillarInfo.topEnd.SnapPointsToIncrement(selectedPillar.owner.heightSnap);
         }
     }
 
@@ -133,17 +135,19 @@ public class HexPillarEditor : Editor
     {
         foreach (GameObject selectedObject in Selection.gameObjects)
         {
-            HexPillarEditable selection = selectedObject.GetComponent<HexPillarEditable>();
+            HexPillarEditable selectedPillar = selectedObject.GetComponent<HexPillarEditable>();
 
-            if (!selection)
+            if (!selectedPillar)
                 continue;
 
-            selection.pillarInfo.bottomEnd.centerHeight = Mathf.Min(selection.pillarInfo.bottomEnd.centerHeight - amount, selection.pillarInfo.topEnd.centerHeight);
+            selectedPillar.pillarInfo.bottomEnd.centerHeight = Mathf.Min(selectedPillar.pillarInfo.bottomEnd.centerHeight - amount, selectedPillar.pillarInfo.topEnd.centerHeight);
 
-            for (int i = 0; i < selection.pillarInfo.bottomEnd.cornerHeights.Length; ++i)
+            for (int i = 0; i < selectedPillar.pillarInfo.bottomEnd.cornerHeights.Length; ++i)
             {
-                selection.pillarInfo.bottomEnd.cornerHeights[i] = Mathf.Min(selection.pillarInfo.bottomEnd.cornerHeights[i] - amount, selection.pillarInfo.topEnd.cornerHeights[i]);
+                selectedPillar.pillarInfo.bottomEnd.cornerHeights[i] = Mathf.Min(selectedPillar.pillarInfo.bottomEnd.cornerHeights[i] - amount, selectedPillar.pillarInfo.topEnd.cornerHeights[i]);
             }
+
+            selectedPillar.pillarInfo.bottomEnd.SnapPointsToIncrement(selectedPillar.owner.heightSnap);
         }
     }
 

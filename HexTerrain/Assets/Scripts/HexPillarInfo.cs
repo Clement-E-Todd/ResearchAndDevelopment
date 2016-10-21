@@ -19,6 +19,16 @@ public class HexPillarInfo : ScriptableObject
                 cornerHeights[i] = height;
             }
         }
+
+        public void SnapPointsToIncrement(float increment)
+        {
+            centerHeight = Mathf.Round(centerHeight / increment) * increment;
+
+            for (int i = 0; i < cornerHeights.Length; ++i)
+            {
+                cornerHeights[i] = Mathf.Round(cornerHeights[i] / increment) * increment;
+            }
+        }
     }
 
     public End topEnd;

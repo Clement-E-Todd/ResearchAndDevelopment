@@ -5,6 +5,7 @@ using System.Linq;
 public class HexTerrain : MonoBehaviour
 {
     public float hexRadius = 1f;
+    public float heightSnap = 0.5f;
     public float minHeight = 0f;
     public float maxHeight = 20f;
 
