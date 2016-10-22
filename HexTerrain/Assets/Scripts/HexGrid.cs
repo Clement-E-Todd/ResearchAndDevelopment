@@ -84,6 +84,16 @@ public abstract class HexGrid
             this.x = x;
             this.y = y;
         }
+
+        public static Coord operator +(Coord a, Coord b)
+        {
+            return new Coord(a.x + b.x, a.y + b.y);
+        }
+
+        public static Coord operator -(Coord a, Coord b)
+        {
+            return new Coord(a.x - b.x, a.y - b.y);
+        }
     }
 
     public static Coord GetNeighbourCoordOffset(HexEdgeDirection direction)

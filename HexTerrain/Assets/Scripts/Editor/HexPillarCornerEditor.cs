@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using UnityEditor;
+using System.Collections.Generic;
+using System.Linq;
 
 public static class HexPillarCornerEditor
 {
@@ -52,9 +54,9 @@ public static class HexPillarCornerEditor
                 continue;
             
             if (selectedCorner.isOnTopEnd)
-                selectedCorner.height = Mathf.Max(selectedCorner.height + amount, selectedCorner.end.pillar.bottomEnd.corners[(int)selectedCorner.corner].height);
+                selectedCorner.height = Mathf.Max(selectedCorner.height + amount, selectedCorner.end.pillar.bottomEnd.corners[(int)selectedCorner.direction].height);
             else
-                selectedCorner.height = Mathf.Min(selectedCorner.height + amount, selectedCorner.end.pillar.topEnd.corners[(int)selectedCorner.corner].height);
+                selectedCorner.height = Mathf.Min(selectedCorner.height + amount, selectedCorner.end.pillar.topEnd.corners[(int)selectedCorner.direction].height);
 
             selectedCorner.height = Mathf.Round(selectedCorner.height / selectedCorner.end.pillar.terrain.heightSnap) * selectedCorner.end.pillar.terrain.heightSnap;
         }
@@ -71,6 +73,36 @@ public static class HexPillarCornerEditor
 
             selection.GenerateMesh();
         }
+    }
+
+    public static void UpdateOverlappingSelections()
+    {
+        List<Object> selectedObjects = Selection.objects.ToList();
+        List<HexPillarCorner> processedCorners = new List<HexPillarCorner>();
+
+        foreach (HexPillarCorner selectedCorner in HexTerrainEditor.selectedCorners)
+        {
+            if (processedCorners.Contains(selectedCorner))
+                continue;
+
+            foreach (HexPillarCorner overlappingCorner in HexHelper.GetOverlappingCorners(selectedCorner))
+            {
+                if (selectedObjects.Contains(overlappingCorner.end.pillar.gameObject) &&
+                    !selectedObjects.Contains(overlappingCorner.gameObject))
+                {
+                    selectedObjects.Insert(0, overlappingCorner.gameObject);
+                }
+                else if (!selectedObjects.Contains(overlappingCorner.end.pillar.gameObject) &&
+                    selectedObjects.Contains(overlappingCorner.gameObject))
+                {
+                    selectedObjects.Remove(overlappingCorner.gameObject);
+                }
+
+                processedCorners.Add(overlappingCorner);
+            }
+        }
+
+        Selection.objects = selectedObjects.ToArray();
     }
 
     public static bool HideUnityTools()

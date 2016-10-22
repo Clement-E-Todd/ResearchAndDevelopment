@@ -26,6 +26,7 @@ public class HexTerrain : HexTerrainElement
 
         pillarObject.AddComponent<MeshFilter>();
         pillarObject.AddComponent<MeshRenderer>();
+        pillarObject.AddComponent<MeshCollider>();
 
         HexPillar pillar = pillarObject.AddComponent<HexPillar>();
         pillar.Init(this, coord);

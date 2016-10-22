@@ -3,6 +3,7 @@
  */
 public enum HexCornerDirection
 {
+    INVALID = -1,
     East,
     SouthEast,
     SouthWest,
@@ -17,6 +18,7 @@ public enum HexCornerDirection
  */
 public enum HexEdgeDirection
 {
+    INVALID = -1,
     SouthEast,
     South,
     SouthWest,

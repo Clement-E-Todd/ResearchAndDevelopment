@@ -20,13 +20,13 @@ public class HexTerrainEditor : Editor
     public static HexPillarEnd[] selectedEnds { get; private set; }
     public static HexPillarCorner[] selectedCorners { get; private set; }
 
+    public static bool xRayMode { get; private set; }
+
     bool terrainElementsSelected = false;
     public bool editorControlsVisible = true;
 
     public void OnSceneGUI()
     {
-        UpdateSelections();
-
         if (terrainElementsSelected)
         {
             HexPillarEditor.UpdatePillarCreationState();
@@ -77,6 +77,8 @@ public class HexTerrainEditor : Editor
         {
             Tools.hidden = false;
         }
+        
+        UpdateSelections();
     }
 
     void UpdateSelections()
@@ -128,6 +130,8 @@ public class HexTerrainEditor : Editor
             selectedPillars = newSelectedPillars.ToArray();
             selectedEnds = newSelectedEnds.ToArray();
             selectedCorners = newSelectedCorners.ToArray();
+
+            HexPillarCornerEditor.UpdateOverlappingSelections();
         }
         else if (terrainElementsSelected)
         {
@@ -139,17 +143,19 @@ public class HexTerrainEditor : Editor
     void ShowTerrainEditorControls()
     {
         Handles.BeginGUI();
-        GUILayout.BeginArea(new Rect(
-            Screen.width * 0.05f, Screen.height * 0.825f,
-            Screen.width * 0.9f, Screen.height * 0.175f));
 
-        if (GUILayout.Button("Create New Hex Pillars"))
+        string buttonText = "Create New Hex Pillars";
+        if (GUI.Button(GetEditorControlButtonRect(0), buttonText))
             HexPillarEditor.OnCreateNewPillarsPressed();
 
-        if (GUILayout.Button("Selection Mode: " + (selectionMode == SelectionMode.Pillars ? "Pillars" : "Vertices")))
+        buttonText = "Selection Mode: " + (selectionMode == SelectionMode.Pillars ? "Pillars" : "Vertices");
+        if (GUI.Button(GetEditorControlButtonRect(1), buttonText))
             selectionMode = (selectionMode == SelectionMode.Pillars ? SelectionMode.Vertices : SelectionMode.Pillars);
 
-        GUILayout.EndArea();
+        buttonText = "X-Ray Mode: " + (xRayMode ? "ON" : "OFF");
+        if (GUI.Button(GetEditorControlButtonRect(2), buttonText))
+            xRayMode = !xRayMode;
+
         Handles.EndGUI();
     }
 
@@ -179,5 +185,23 @@ public class HexTerrainEditor : Editor
         {
             selectedPillar.GenerateMesh();
         }
+    }
+
+    static Rect GetEditorControlButtonRect(int buttonIndex)
+    {
+        const int maxButtons = 3;
+        if (buttonIndex < 0 || buttonIndex >= maxButtons)
+        {
+            Debug.LogWarning("Button index out of range.");
+            return new Rect();
+        }
+
+        float padding = Screen.width * 0.025f;
+
+        Vector2 buttonSize = new Vector2(
+            (Screen.width - padding * (maxButtons + 1)) / maxButtons,
+            Screen.height * 0.05f);
+
+        return new Rect(new Vector2(padding + (buttonSize.x + padding) * buttonIndex, Screen.height - (buttonSize.y * 2f) - padding), buttonSize);
     }
 }

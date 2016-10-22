@@ -7,6 +7,19 @@ public static class HexPillarEndEditor
     {
         foreach (HexPillarEnd selectedEnd in HexTerrainEditor.selectedEnds)
         {
+            if (!HexTerrainEditor.xRayMode)
+            {
+                // With X-Ray Mode off, we must ensure that we're allowed to see this point before continuing.
+                Vector3 cameraPosition = SceneView.currentDrawingSceneView.camera.transform.position;
+                Vector3 direction = (selectedEnd.transform.position - cameraPosition).normalized;
+
+                RaycastHit hit;
+                if (Physics.Raycast(cameraPosition, direction, out hit, Vector3.Distance(cameraPosition, selectedEnd.transform.position) - 0.01f))
+                {
+                    continue;
+                }
+            }
+
             float delta = Handle(selectedEnd, 1f, new Color(1f, 0.75f, 0f));
 
             if (delta != 0f)

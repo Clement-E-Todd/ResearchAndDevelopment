@@ -211,7 +211,10 @@ public class HexPillar : HexTerrainElement
                 continue;
 
             // Calculate vertices and UVs...
-            HexCornerDirection[] corners = HexHelper.GetCornerDirectionsNextToEdge(edge);
+            HexCornerDirection[] corners = new HexCornerDirection[] {
+            HexHelper.GetCornerDirectionNextToEdge(edge, false),
+            HexHelper.GetCornerDirectionNextToEdge(edge, true)
+            };
 
             for (int iCorner = 0; iCorner < corners.Length; ++iCorner)
             {
@@ -252,6 +255,11 @@ public class HexPillar : HexTerrainElement
         // Update end and corner handles to match new model
         topEnd.UpdatePosition();
         bottomEnd.UpdatePosition();
+
+        // Have the physics use this meh as a collider
+        MeshCollider collider = GetComponent<MeshCollider>();
+        if (collider)
+            collider.sharedMesh = mesh;
     }
 
     void OnUndoRedo()

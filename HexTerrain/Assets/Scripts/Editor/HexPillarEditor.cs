@@ -82,6 +82,20 @@ public static class HexPillarEditor
     static void EndButton(HexPillar pillar, bool topEnd)
     {
         HexPillarEnd endObject = topEnd ? pillar.topEnd : pillar.bottomEnd;
+
+        if (!HexTerrainEditor.xRayMode)
+        {
+            // With X-Ray Mode off, we must ensure that we're allowed to see this point before continuing.
+            Vector3 cameraPosition = SceneView.currentDrawingSceneView.camera.transform.position;
+            Vector3 direction = (endObject.transform.position - cameraPosition).normalized;
+
+            RaycastHit hit;
+            if (Physics.Raycast(cameraPosition, direction, out hit, Vector3.Distance(cameraPosition, endObject.transform.position) - 0.01f))
+            {
+                return;
+            }
+        }
+
         List<Object> selectedObjects = Selection.objects.ToList();
 
         if (selectedObjects.Contains(endObject.gameObject))
@@ -127,6 +141,20 @@ public static class HexPillarEditor
     static void CornerButton(HexPillar pillar, HexCornerDirection cornerDirection, bool topCorner)
     {
         HexPillarCorner cornerObject = (topCorner ? pillar.topEnd.corners : pillar.bottomEnd.corners)[(int)cornerDirection];
+
+        if (!HexTerrainEditor.xRayMode)
+        {
+            // With X-Ray Mode off, we must ensure that we're allowed to see this point before continuing.
+            Vector3 cameraPosition = SceneView.currentDrawingSceneView.camera.transform.position;
+            Vector3 direction = (cornerObject.transform.position - cameraPosition).normalized;
+
+            RaycastHit hit;
+            if (Physics.Raycast(cameraPosition, direction, out hit, Vector3.Distance(cameraPosition, cornerObject.transform.position) - 0.01f))
+            {
+                return;
+            }
+        }
+
         List<Object> selectedObjects = Selection.objects.ToList();
 
         if (selectedObjects.Contains(cornerObject.gameObject))
@@ -142,13 +170,20 @@ public static class HexPillarEditor
         {
             if (Event.current.shift)
             {
-                if (selectedObjects.Contains(cornerObject.gameObject))
+                bool addToSelection = !selectedObjects.Contains(cornerObject.gameObject);
+
+                foreach (HexPillarCorner overlappingCorner in HexHelper.GetOverlappingCorners(cornerObject))
                 {
-                    selectedObjects.Remove(cornerObject.gameObject);
-                }
-                else
-                {
-                    selectedObjects.Insert(0, cornerObject.gameObject);
+                    if (addToSelection)
+                    {
+                        if (!selectedObjects.Contains(overlappingCorner.gameObject) &&
+                            HexTerrainEditor.selectedPillars.ToList().Contains(overlappingCorner.end.pillar))
+                            selectedObjects.Insert(0, overlappingCorner.gameObject);
+                    }
+                    else
+                    {
+                        selectedObjects.Remove(overlappingCorner.gameObject);
+                    }
                 }
             }
             else
@@ -162,7 +197,11 @@ public static class HexPillarEditor
                     }
                 }
 
-                selectedObjects.Insert(0, cornerObject.gameObject);
+                foreach (HexPillarCorner overlappingCorner in HexHelper.GetOverlappingCorners(cornerObject))
+                {
+                    if (HexTerrainEditor.selectedPillars.ToList().Contains(overlappingCorner.end.pillar))
+                        selectedObjects.Insert(0, overlappingCorner.gameObject);
+                }
             }
 
             Selection.objects = selectedObjects.ToArray();
