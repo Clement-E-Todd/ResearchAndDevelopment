@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class HexPillarEnd : MonoBehaviour
+public class HexPillarEnd : HexTerrainElement
 {
     public HexPillar pillar { get; private set; }
     public bool isTopEnd { get; private set; }
@@ -52,5 +52,26 @@ public class HexPillarEnd : MonoBehaviour
         {
             corners[i].height = Mathf.Round(corners[i].height / increment) * increment;
         }
+    }
+
+    public HexPillarEnd GetOtherEnd()
+    {
+        if (pillar.topEnd != this)
+        {
+            return pillar.topEnd;
+        }
+        else if (pillar.bottomEnd != this)
+        {
+            return pillar.bottomEnd;
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    public override HexTerrain GetTerrain()
+    {
+        return pillar.terrain;
     }
 }

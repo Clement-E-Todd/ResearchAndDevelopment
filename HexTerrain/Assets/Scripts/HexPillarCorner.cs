@@ -1,13 +1,11 @@
-﻿using System;
-using UnityEngine;
-using UnityEngine.EventSystems;
+﻿using UnityEngine;
 
-public class HexPillarCorner : MonoBehaviour
+public class HexPillarCorner : HexTerrainElement
 {
     public HexPillarEnd end { get; private set; }
     public HexCornerDirection corner { get; private set; }
     public bool isOnTopEnd { get { return end.isTopEnd; } }
-
+    
     public float height;
 
     public void Init(HexPillarEnd end, HexCornerDirection corner)
@@ -20,5 +18,10 @@ public class HexPillarCorner : MonoBehaviour
     {
         transform.localPosition = HexHelper.GetCornerDirectionVector(corner) * end.pillar.terrain.hexRadius;
         transform.localPosition += new Vector3(0, end.corners[(int)corner].height - end.transform.localPosition.y, 0);
+    }
+
+    public override HexTerrain GetTerrain()
+    {
+        return end.pillar.terrain;
     }
 }

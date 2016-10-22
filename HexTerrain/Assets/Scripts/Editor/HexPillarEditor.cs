@@ -3,24 +3,39 @@ using UnityEditor;
 using System.Collections.Generic;
 using System.Linq;
 
-[CustomEditor(typeof(HexPillar))]
-[CanEditMultipleObjects]
-public class HexPillarEditor : Editor
+public static class HexPillarEditor
 {
-    public void OnSceneGUI()
+    enum PillarCreationState
     {
-        HexPillar selectedPillar = Selection.activeGameObject ? Selection.activeGameObject.GetComponent<HexPillar>() : null;
+        None,
+        ChooseHorizontalPositions,
+        ChooseTopHeight,
+        ChooseBottomHeight
+    }
+    static PillarCreationState pillarCreationState = PillarCreationState.None;
 
-        if (!selectedPillar)
+    static Vector3 createPlanePoint;
+    const float distanceToHorizonalPlane = 10f;
+
+    static List<HexGrid.Coord> newPillarCoords = new List<HexGrid.Coord>();
+    static float newPillarTopHeight;
+    static float newPillarBottomHeight;
+
+    static float totalMouseDelta;
+
+    public static void OnSceneGUI()
+    {
+        foreach (HexPillar selectedPillar in HexTerrainEditor.selectedPillars)
         {
-            return;
+            float delta = Handle(selectedPillar);
+
+            if (delta != 0f)
+            {
+                HexPillarEndEditor.MoveEndByAmount(selectedPillar.topEnd, delta);
+                HexPillarEndEditor.MoveEndByAmount(selectedPillar.bottomEnd, delta);
+                HexTerrainEditor.RedrawSelections();
+            }
         }
-
-        Tools.hidden = true;
-
-        TopHandle(selectedPillar);
-        MiddleHandle(selectedPillar);
-        BottomHandle(selectedPillar);
 
         foreach (GameObject selectedObject in Selection.gameObjects)
         {
@@ -37,121 +52,33 @@ public class HexPillarEditor : Editor
         }
     }
 
-    void TopHandle(HexPillar selectedPillar)
+    public static void CancelPillarCreation()
     {
-        float delta = Handle(
-            selectedPillar,
-            new Vector3(0, selectedPillar.topEnd.centerHeight, 0),
-            Vector3.up);
-
-        if (delta != 0f)
-        {
-            MoveTop(delta);
-            RedrawSelections();
-        }
+        pillarCreationState = PillarCreationState.None;
     }
 
-    void MiddleHandle(HexPillar selectedPillar)
+    static float Handle(HexPillar pillar)
     {
-        float height = (selectedPillar.topEnd.centerHeight + selectedPillar.bottomEnd.centerHeight) / 2;
-
-        float delta = Handle(
-            selectedPillar,
-            new Vector3(0, height, 0),
-            Vector3.up,
-            0.35f,
-            Handles.SphereCap);
-
-        if (delta != 0f)
-        {
-            MoveTop(delta);
-            MoveBottom(-delta);
-            RedrawSelections();
-        }
-    }
-
-    void BottomHandle(HexPillar selectedPillar)
-    {
-        float delta = Handle(
-            selectedPillar,
-            new Vector3(0, selectedPillar.bottomEnd.centerHeight, 0),
-            Vector3.down);
-
-        if (delta != 0f)
-        {
-            MoveBottom(delta);
-            RedrawSelections();
-        }
-    }
-
-    float Handle(
-        HexPillar pillar,
-        Vector3 localPosition,
-        Vector3 localDirection,
-        float size = 1f,
-        Handles.DrawCapFunction cap = null)
-    {
-        if (cap == null)
-            cap = Handles.ArrowCap;
+        Vector3 positionBefore = pillar.transform.TransformPoint((pillar.topEnd.transform.localPosition + pillar.bottomEnd.transform.localPosition) / 2);
+        Vector3 direction = pillar.transform.TransformDirection(pillar.transform.up);
 
         Handles.color = new Color(1f, 0.75f, 0f);
 
-        Vector3 positionBefore = pillar.transform.TransformPoint(localPosition);
-        Vector3 direction = pillar.transform.TransformDirection(localDirection);
-
         EditorGUI.BeginChangeCheck();
-        Vector3 positionAfter = Handles.Slider(positionBefore, direction, size, cap, 0f);
+        Vector3 positionAfter = Handles.Slider(positionBefore, direction, 0.35f, Handles.SphereCap, 0f);
         if (EditorGUI.EndChangeCheck())
         {
-            Undo.RecordObject(pillar.topEnd, "Edit Pillar");
-            Undo.RecordObject(pillar.bottomEnd, "Edit Pillar");
+            foreach (HexPillarEnd selectedEnd in HexTerrainEditor.selectedEnds)
+            {
+                Undo.RecordObject(selectedEnd, "Edit Pillar");
+            }
         }
 
         Vector3 positionDelta = positionAfter - positionBefore;
         return Vector3.Dot(positionDelta, direction);
     }
 
-    void MoveTop(float amount)
-    {
-        foreach (GameObject selectedObject in Selection.gameObjects)
-        {
-            HexPillar selectedPillar = selectedObject.GetComponent<HexPillar>();
-
-            if (!selectedPillar)
-                continue;
-
-            selectedPillar.topEnd.centerHeight = Mathf.Max(selectedPillar.topEnd.centerHeight + amount, selectedPillar.bottomEnd.centerHeight);
-
-            for (int i = 0; i < selectedPillar.topEnd.corners.Length; ++i)
-            {
-                selectedPillar.topEnd.corners[i].height = Mathf.Max(selectedPillar.topEnd.corners[i].height + amount, selectedPillar.bottomEnd.corners[i].height);
-            }
-            
-            selectedPillar.topEnd.SnapPointsToIncrement(selectedPillar.terrain.heightSnap);
-        }
-    }
-
-    void MoveBottom(float amount)
-    {
-        foreach (GameObject selectedObject in Selection.gameObjects)
-        {
-            HexPillar selectedPillar = selectedObject.GetComponent<HexPillar>();
-
-            if (!selectedPillar)
-                continue;
-
-            selectedPillar.bottomEnd.centerHeight = Mathf.Min(selectedPillar.bottomEnd.centerHeight - amount, selectedPillar.topEnd.centerHeight);
-
-            for (int i = 0; i < selectedPillar.bottomEnd.corners.Length; ++i)
-            {
-                selectedPillar.bottomEnd.corners[i].height = Mathf.Min(selectedPillar.bottomEnd.corners[i].height - amount, selectedPillar.topEnd.corners[i].height);
-            }
-
-            selectedPillar.bottomEnd.SnapPointsToIncrement(selectedPillar.terrain.heightSnap);
-        }
-    }
-
-    void CornerButton(HexPillar pillar, HexCornerDirection cornerDirection, bool topCorner)
+    static void CornerButton(HexPillar pillar, HexCornerDirection cornerDirection, bool topCorner)
     {
         HexPillarCorner cornerObject = (topCorner ? pillar.topEnd.corners : pillar.bottomEnd.corners)[(int)cornerDirection];
         List<Object> selectedObjects = Selection.objects.ToList();
@@ -195,16 +122,231 @@ public class HexPillarEditor : Editor
         }
     }
 
-    void RedrawSelections()
+    public static void UpdatePillarCreationState()
     {
-        foreach (GameObject selectedObject in Selection.gameObjects)
+        if (!HexTerrainEditor.selectedTerrain)
         {
-            HexPillar selection = selectedObject.GetComponent<HexPillar>();
-
-            if (!selection)
-                continue;
-
-            selection.GenerateMesh();
+            return;
         }
+
+        switch (pillarCreationState)
+        {
+            case PillarCreationState.ChooseHorizontalPositions:
+                ChooseHorizontalPositionsForNewPillars(HexTerrainEditor.selectedTerrain);
+                break;
+
+            case PillarCreationState.ChooseTopHeight:
+                ChooseTopHeightForNewPillars(HexTerrainEditor.selectedTerrain);
+                break;
+
+            case PillarCreationState.ChooseBottomHeight:
+                ChooseBottomHeightForNewPillars(HexTerrainEditor.selectedTerrain);
+                break;
+        }
+    }
+
+    static void ChooseHorizontalPositionsForNewPillars(HexTerrain terrain)
+    {
+        if (!Camera.current)
+        {
+            pillarCreationState = PillarCreationState.None;
+            return;
+        }
+
+        HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
+
+        createPlanePoint = Camera.current.transform.position + Camera.current.transform.forward * distanceToHorizonalPlane;
+
+        Plane plane = new Plane(terrain.transform.up, createPlanePoint);
+        Ray ray = Camera.current.ScreenPointToRay(new Vector2(Event.current.mousePosition.x, Screen.height - Event.current.mousePosition.y));
+
+        float rayDistance;
+        if (plane.Raycast(ray, out rayDistance))
+        {
+            Vector3 cursorWorldPosition = ray.GetPoint(rayDistance);
+
+            Plane topPlane = new Plane(terrain.transform.up, terrain.transform.position + terrain.transform.up * terrain.maxHeight);
+            Plane bottomPlane = new Plane(terrain.transform.up, terrain.transform.position + terrain.transform.up * terrain.minHeight);
+
+            Handles.color = new Color(0f, 1f, 0f);
+            Handles.DrawLine(
+                cursorWorldPosition - topPlane.normal * topPlane.GetDistanceToPoint(cursorWorldPosition),
+                cursorWorldPosition - bottomPlane.normal * bottomPlane.GetDistanceToPoint(cursorWorldPosition)
+                );
+
+            HexGrid.Coord coord = terrain.GetCoordForWorldPosition(cursorWorldPosition);
+
+            if (Event.current.type == EventType.MouseDown || Event.current.type == EventType.MouseDrag)
+            {
+                if (Event.current.button == 0 && !newPillarCoords.Contains(coord))
+                {
+                    newPillarCoords.Add(coord);
+                }
+                else if (Event.current.button == 1)
+                {
+                    pillarCreationState = PillarCreationState.None;
+                }
+            }
+            else if (Event.current.type == EventType.MouseUp && Event.current.button == 0)
+            {
+                pillarCreationState = PillarCreationState.ChooseTopHeight;
+                totalMouseDelta = 0f;
+            }
+
+            Handles.color = new Color(0f, 1f, 0.75f);
+            foreach (HexGrid.Coord newPillarCoord in newPillarCoords)
+            {
+                DrawRingAtCoord(terrain, coord, Vector3.Dot(terrain.transform.up, createPlanePoint), true);
+            }
+
+            DrawVerticalLinesAtCoord(terrain, coord);
+            DrawRingAtCoord(terrain, coord, Vector3.Dot(terrain.transform.up, createPlanePoint), false);
+        }
+    }
+
+    static void ChooseTopHeightForNewPillars(HexTerrain terrain)
+    {
+        HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
+
+        if (Event.current.isMouse)
+        {
+            totalMouseDelta -= Event.current.delta.y;
+
+            newPillarTopHeight = Vector3.Dot(terrain.transform.up, createPlanePoint);
+            newPillarTopHeight += (totalMouseDelta / Screen.height) * (terrain.maxHeight - terrain.minHeight);
+            newPillarTopHeight = Mathf.Round(newPillarTopHeight / terrain.heightSnap) * terrain.heightSnap;
+            newPillarTopHeight = Mathf.Clamp(newPillarTopHeight, terrain.minHeight, terrain.maxHeight);
+        }
+
+        foreach (HexGrid.Coord newPillarCoord in newPillarCoords)
+        {
+            Handles.color = new Color(0f, 1f, 0.75f);
+            DrawVerticalLinesAtCoord(terrain, newPillarCoord);
+            DrawRingAtCoord(terrain, newPillarCoord, newPillarTopHeight, true);
+        }
+
+        if (Event.current.type == EventType.MouseUp && Event.current.button == 0)
+        {
+            newPillarBottomHeight = newPillarTopHeight;
+
+            pillarCreationState = PillarCreationState.ChooseBottomHeight;
+            totalMouseDelta = 0f;
+        }
+    }
+
+    static void ChooseBottomHeightForNewPillars(HexTerrain terrain)
+    {
+        HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
+
+        if (Event.current.isMouse)
+        {
+            totalMouseDelta -= Event.current.delta.y;
+
+            newPillarBottomHeight = newPillarTopHeight;
+            newPillarBottomHeight += (totalMouseDelta / Screen.height) * (terrain.maxHeight - terrain.minHeight);
+            newPillarBottomHeight = Mathf.Round(newPillarBottomHeight / terrain.heightSnap) * terrain.heightSnap;
+            newPillarBottomHeight = Mathf.Clamp(newPillarBottomHeight, terrain.minHeight, newPillarTopHeight);
+        }
+
+        foreach (HexGrid.Coord newPillarCoord in newPillarCoords)
+        {
+            Handles.color = new Color(0f, 1f, 0.75f);
+            DrawVerticalLinesAtCoord(terrain, newPillarCoord);
+            DrawRingAtCoord(terrain, newPillarCoord, newPillarTopHeight, false);
+            DrawRingAtCoord(terrain, newPillarCoord, newPillarBottomHeight, true);
+        }
+
+        if (Event.current.type == EventType.MouseUp && Event.current.button == 0)
+        {
+            foreach (HexGrid.Coord newPillarCoord in newPillarCoords)
+            {
+                terrain.AddPillar(newPillarCoord, newPillarTopHeight, newPillarBottomHeight);
+            }
+
+            newPillarCoords.Clear();
+            pillarCreationState = PillarCreationState.None;
+        }
+    }
+
+
+    static void DrawVerticalLinesAtCoord(HexTerrain terrain, HexGrid.Coord coord)
+    {
+        Plane topPlane = new Plane(terrain.transform.up, terrain.transform.position + terrain.transform.up * terrain.maxHeight);
+        Plane bottomPlane = new Plane(terrain.transform.up, terrain.transform.position + terrain.transform.up * terrain.minHeight);
+
+        Vector3 hexLocalPosition = terrain.GetLocalPositionForCoord(coord);
+
+        for (HexCornerDirection direction = 0; direction < HexCornerDirection.MAX; ++direction)
+        {
+            Vector3 cornerLocalPosition = hexLocalPosition + HexHelper.GetCornerDirectionVector(direction) * terrain.hexRadius;
+            Vector3 cornerWorldPosition = terrain.transform.TransformPoint(cornerLocalPosition);
+
+            Handles.DrawLine(
+                    cornerWorldPosition - topPlane.normal * topPlane.GetDistanceToPoint(cornerWorldPosition),
+                    cornerWorldPosition - bottomPlane.normal * bottomPlane.GetDistanceToPoint(cornerWorldPosition));
+        }
+    }
+
+    static void DrawRingAtCoord(HexTerrain terrain, HexGrid.Coord coord, float height, bool innerRing)
+    {
+        Vector3 hexLocalPosition = terrain.GetLocalPositionForCoord(coord);
+        height = Mathf.Clamp(height, terrain.minHeight, terrain.maxHeight);
+
+        // Outter ring
+        for (HexCornerDirection direction = 0; direction < HexCornerDirection.MAX; ++direction)
+        {
+            Vector3 corner1LocalPosition = hexLocalPosition + HexHelper.GetCornerDirectionVector(direction) * terrain.hexRadius;
+            corner1LocalPosition.y = height;
+            Vector3 corner1WorldPosition = terrain.transform.TransformPoint(corner1LocalPosition);
+
+            HexCornerDirection nextDirection = direction + 1;
+            if (nextDirection == HexCornerDirection.MAX)
+                nextDirection = 0;
+
+            Vector3 corner2LocalPosition = hexLocalPosition + HexHelper.GetCornerDirectionVector(nextDirection) * terrain.hexRadius;
+            corner2LocalPosition.y = height;
+            Vector3 corner2WorldPosition = terrain.transform.TransformPoint(corner2LocalPosition);
+
+            Handles.DrawLine(corner1WorldPosition, corner2WorldPosition);
+        }
+
+        // Inner ring
+        if (innerRing)
+        {
+            for (HexCornerDirection direction = 0; direction < HexCornerDirection.MAX; ++direction)
+            {
+                Vector3 corner1LocalPosition = hexLocalPosition + HexHelper.GetCornerDirectionVector(direction) * terrain.hexRadius / 2f;
+                corner1LocalPosition.y = height;
+                Vector3 corner1WorldPosition = terrain.transform.TransformPoint(corner1LocalPosition);
+
+                HexCornerDirection nextDirection = direction + 1;
+                if (nextDirection == HexCornerDirection.MAX)
+                    nextDirection = 0;
+
+                Vector3 corner2LocalPosition = hexLocalPosition + HexHelper.GetCornerDirectionVector(nextDirection) * terrain.hexRadius / 2f;
+                corner2LocalPosition.y = height;
+                Vector3 corner2WorldPosition = terrain.transform.TransformPoint(corner2LocalPosition);
+
+                Handles.DrawLine(corner1WorldPosition, corner2WorldPosition);
+            }
+        }
+    }
+
+    public static void OnCreateNewPillarsPressed()
+    {
+        if (pillarCreationState == PillarCreationState.None)
+        {
+            pillarCreationState = PillarCreationState.ChooseHorizontalPositions;
+        }
+    }
+
+    public static bool HideUnityTools()
+    {
+        return HexTerrainEditor.selectedPillars.Length > 0 || pillarCreationState != PillarCreationState.None;
+    }
+
+    public static bool HideTerrainEditorControls()
+    {
+        return pillarCreationState != PillarCreationState.None;
     }
 }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-public class HexTerrain : MonoBehaviour
+public class HexTerrain : HexTerrainElement
 {
     public float hexRadius = 1f;
     public float heightSnap = 0.5f;
@@ -122,5 +122,10 @@ public class HexTerrain : MonoBehaviour
 
         coord = new HexGrid.Coord();
         return false;
+    }
+
+    public override HexTerrain GetTerrain()
+    {
+        return this;
     }
 }

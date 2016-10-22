@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 [RequireComponent(typeof(MeshFilter))]
 [RequireComponent(typeof(MeshRenderer))]
-public class HexPillar : MonoBehaviour
+public class HexPillar : HexTerrainElement
 {
     public HexTerrain terrain { get; private set; }
     public HexGrid.Coord coord { get; private set; }
@@ -249,5 +249,10 @@ public class HexPillar : MonoBehaviour
     void OnUndoRedo()
     {
         GenerateMesh();
+    }
+
+    public override HexTerrain GetTerrain()
+    {
+        return terrain;
     }
 }

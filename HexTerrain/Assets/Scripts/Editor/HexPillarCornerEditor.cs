@@ -1,37 +1,23 @@
 ﻿using UnityEngine;
 using UnityEditor;
 
-[CustomEditor(typeof(HexPillarCorner))]
-[CanEditMultipleObjects]
-public class HexPillarCornerEditor : Editor
+public static class HexPillarCornerEditor
 {
-    public void OnSceneGUI()
+    public static void OnSceneGUI()
     {
-        bool redraw = false;
-
-        foreach (GameObject selectedObject in Selection.gameObjects)
+        foreach (HexPillarCorner selectedCorner in HexTerrainEditor.selectedCorners)
         {
-            HexPillarCorner selectedCorner = selectedObject.GetComponent<HexPillarCorner>();
-
-            if (!selectedCorner)
-                continue;
-
             float delta = Handle(selectedCorner);
 
             if (delta != 0f)
             {
                 MoveSelectedCorners(delta);
-                redraw = true;
+                HexTerrainEditor.RedrawSelections();
             }
-        }
-
-        if (redraw)
-        {
-            RedrawSelections();
         }
     }
 
-    float Handle(HexPillarCorner cornerObject)
+    static float Handle(HexPillarCorner cornerObject)
     {
         Handles.color = new Color(1.0f, 0.25f, 0f);
 
@@ -46,13 +32,8 @@ public class HexPillarCornerEditor : Editor
             0f);
         if (EditorGUI.EndChangeCheck())
         {
-            foreach (GameObject selectedObject in Selection.gameObjects)
+            foreach (HexPillarCorner selectedCorner in HexTerrainEditor.selectedCorners)
             {
-                HexPillarCorner selectedCorner = selectedObject.GetComponent<HexPillarCorner>();
-
-                if (!selectedCorner)
-                    continue;
-
                 Undo.RecordObject(selectedCorner, "Edit Pillar Corner");
             }
         }
@@ -61,7 +42,7 @@ public class HexPillarCornerEditor : Editor
         return Vector3.Dot(positionDelta, direction) * Vector3.Dot(direction, cornerObject.transform.up);
     }
 
-    void MoveSelectedCorners(float amount)
+    static void MoveSelectedCorners(float amount)
     {
         foreach (GameObject selectedObject in Selection.gameObjects)
         {
@@ -79,7 +60,7 @@ public class HexPillarCornerEditor : Editor
         }
     }
 
-    void RedrawSelections()
+    static void RedrawSelections()
     {
         foreach (GameObject selectedObject in Selection.gameObjects)
         {
@@ -90,5 +71,15 @@ public class HexPillarCornerEditor : Editor
 
             selection.GenerateMesh();
         }
+    }
+
+    public static bool HideUnityTools()
+    {
+        return HexTerrainEditor.selectedCorners.Length > 0;
+    }
+
+    public static bool HideTerrainEditorControls()
+    {
+        return false;
     }
 }
