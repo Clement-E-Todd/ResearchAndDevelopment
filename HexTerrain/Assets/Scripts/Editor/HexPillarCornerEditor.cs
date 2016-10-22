@@ -3,7 +3,7 @@ using UnityEditor;
 
 public static class HexPillarCornerEditor
 {
-    public static void OnSceneGUI()
+    public static void OnSelectionModeVertices()
     {
         foreach (HexPillarCorner selectedCorner in HexTerrainEditor.selectedCorners)
         {
@@ -19,7 +19,7 @@ public static class HexPillarCornerEditor
 
     static float Handle(HexPillarCorner cornerObject)
     {
-        Handles.color = new Color(1.0f, 0.25f, 0f);
+        Handles.color = new Color(1f, 0.25f, 0f);
 
         Vector3 direction = cornerObject.isOnTopEnd ? cornerObject.transform.up : -cornerObject.transform.up;
 

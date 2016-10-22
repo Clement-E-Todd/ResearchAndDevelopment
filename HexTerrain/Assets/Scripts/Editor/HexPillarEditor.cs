@@ -23,7 +23,7 @@ public static class HexPillarEditor
 
     static float totalMouseDelta;
 
-    public static void OnSceneGUI()
+    public static void OnSelectionModePillars()
     {
         foreach (HexPillar selectedPillar in HexTerrainEditor.selectedPillars)
         {
@@ -31,24 +31,25 @@ public static class HexPillarEditor
 
             if (delta != 0f)
             {
-                HexPillarEndEditor.MoveEndByAmount(selectedPillar.topEnd, delta);
-                HexPillarEndEditor.MoveEndByAmount(selectedPillar.bottomEnd, delta);
+                HexPillarEndEditor.MoveEndByAmount(selectedPillar.topEnd, delta, true);
+                HexPillarEndEditor.MoveEndByAmount(selectedPillar.bottomEnd, delta, true);
                 HexTerrainEditor.RedrawSelections();
             }
         }
+    }
 
-        foreach (GameObject selectedObject in Selection.gameObjects)
+    public static void OnSelectionModeVertices()
+    {
+        foreach (HexPillar selectedPillar in HexTerrainEditor.selectedPillars)
         {
-            HexPillar selection = selectedObject.GetComponent<HexPillar>();
-
-            if (!selection)
-                continue;
-
             for (HexCornerDirection direction = 0; direction < HexCornerDirection.MAX; ++direction)
             {
-                CornerButton(selection, direction, true);
-                CornerButton(selection, direction, false);
+                CornerButton(selectedPillar, direction, true);
+                CornerButton(selectedPillar, direction, false);
             }
+
+            EndButton(selectedPillar, true);
+            EndButton(selectedPillar, false);
         }
     }
 
@@ -76,6 +77,51 @@ public static class HexPillarEditor
 
         Vector3 positionDelta = positionAfter - positionBefore;
         return Vector3.Dot(positionDelta, direction);
+    }
+
+    static void EndButton(HexPillar pillar, bool topEnd)
+    {
+        HexPillarEnd endObject = topEnd ? pillar.topEnd : pillar.bottomEnd;
+        List<Object> selectedObjects = Selection.objects.ToList();
+
+        if (selectedObjects.Contains(endObject.gameObject))
+            Handles.color = new Color(0f, 1.0f, 0.25f);
+        else
+            Handles.color = new Color(0f, 0.5f, 0.125f);
+
+        if (Handles.Button(
+            endObject.transform.position,
+            Quaternion.identity,
+            0.05f, 0.05f,
+            Handles.DotCap))
+        {
+            if (Event.current.shift)
+            {
+                if (selectedObjects.Contains(endObject.gameObject))
+                {
+                    selectedObjects.Remove(endObject.gameObject);
+                }
+                else
+                {
+                    selectedObjects.Insert(0, endObject.gameObject);
+                }
+            }
+            else
+            {
+                foreach (GameObject selectedObject in Selection.objects)
+                {
+                    if (selectedObject.GetComponent<HexPillarCorner>() ||
+                        selectedObject.GetComponent<HexPillarEnd>())
+                    {
+                        selectedObjects.Remove(selectedObject);
+                    }
+                }
+
+                selectedObjects.Insert(0, endObject.gameObject);
+            }
+
+            Selection.objects = selectedObjects.ToArray();
+        }
     }
 
     static void CornerButton(HexPillar pillar, HexCornerDirection cornerDirection, bool topCorner)
@@ -109,7 +155,8 @@ public static class HexPillarEditor
             {
                 foreach (GameObject selectedObject in Selection.objects)
                 {
-                    if (selectedObject.GetComponent<HexPillarCorner>())
+                    if (selectedObject.GetComponent<HexPillarCorner>() ||
+                        selectedObject.GetComponent<HexPillarEnd>())
                     {
                         selectedObjects.Remove(selectedObject);
                     }
@@ -260,7 +307,8 @@ public static class HexPillarEditor
         {
             foreach (HexGrid.Coord newPillarCoord in newPillarCoords)
             {
-                terrain.AddPillar(newPillarCoord, newPillarTopHeight, newPillarBottomHeight);
+                HexPillar newPillar = terrain.AddPillar(newPillarCoord, newPillarTopHeight, newPillarBottomHeight);
+                Undo.RegisterCreatedObjectUndo(newPillar.gameObject, "Create Pillar");
             }
 
             newPillarCoords.Clear();

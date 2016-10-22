@@ -14,6 +14,22 @@ public class HexPillarCorner : HexTerrainElement
         this.corner = corner;
     }
 
+    void OnDestroy()
+    {
+        if (doNotRecreateOnDestroy || !end)
+            return;
+
+        string cornerName = string.Format("Corner ({0}, {1})", corner.ToString(), end.isTopEnd ? "Top" : "Bottom");
+        GameObject cornerGmeObject = new GameObject(cornerName, typeof(HexPillarCorner));
+        cornerGmeObject.transform.SetParent(end.transform);
+        end.corners[(int)corner] = cornerGmeObject.GetComponent<HexPillarCorner>();
+        end.corners[(int)corner].Init(end, corner);
+        end.corners[(int)corner].height = end.centerHeight;
+        end.corners[(int)corner].UpdatePosition();
+
+        end.pillar.GenerateMesh();
+    }
+
     public void UpdatePosition()
     {
         transform.localPosition = HexHelper.GetCornerDirectionVector(corner) * end.pillar.terrain.hexRadius;

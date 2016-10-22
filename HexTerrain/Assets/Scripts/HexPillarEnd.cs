@@ -24,6 +24,39 @@ public class HexPillarEnd : HexTerrainElement
         }
     }
 
+    void OnDestroy()
+    {
+        for (HexCornerDirection direction = 0; direction < HexCornerDirection.MAX; ++direction)
+        {
+            if (corners[(int)direction])
+                corners[(int)direction].DestoryWithoutRecreating();
+        }
+
+        if (doNotRecreateOnDestroy)
+            return;
+
+        GameObject endGameObject = new GameObject((isTopEnd ? "Top" : "Bottom") + " End", typeof(HexPillarEnd));
+        endGameObject.transform.SetParent(pillar.transform);
+        HexPillarEnd newEnd = endGameObject.GetComponent<HexPillarEnd>();
+
+        if (isTopEnd)
+            pillar.topEnd = newEnd;
+        else
+            pillar.bottomEnd = newEnd;
+
+        newEnd.Init(pillar, isTopEnd);
+
+        newEnd.centerHeight = newEnd.GetOtherEnd().centerHeight;
+        for (HexCornerDirection direction = 0; direction < HexCornerDirection.MAX; ++direction)
+        {
+            newEnd.corners[(int)direction].height = newEnd.GetOtherEnd().corners[(int)direction].height;
+        }
+
+        newEnd.UpdatePosition();
+
+        pillar.GenerateMesh();
+    }
+
     public void UpdatePosition()
     {
         transform.localPosition = new Vector3(0, centerHeight, 0);

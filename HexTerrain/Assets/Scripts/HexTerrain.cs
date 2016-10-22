@@ -17,7 +17,7 @@ public class HexTerrain : HexTerrainElement
 
     const int sidesPerHex = 6;
 
-    public void AddPillar(HexGrid.Coord coord, float topHeight = 1f, float bottomHeight = 0f)
+    public HexPillar AddPillar(HexGrid.Coord coord, float topHeight = 1f, float bottomHeight = 0f)
     {
         GameObject pillarObject = new GameObject();
         pillarObject.name = string.Format("Pillar [{0}, {1}]", coord.x, coord.y);
@@ -68,6 +68,8 @@ public class HexTerrain : HexTerrainElement
         }
 
         pillar.GenerateMesh();
+
+        return pillar;
     }
 
     public Vector3 GetLocalPositionForCoord(HexGrid.Coord coord, float height = 0f)

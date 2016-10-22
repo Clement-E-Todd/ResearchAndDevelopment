@@ -3,32 +3,51 @@ using UnityEditor;
 
 public static class HexPillarEndEditor
 {
-    public static void OnSceneGUI()
+    public static void OnSelectionModePillars()
     {
-        Handles.color = new Color(1f, 0.75f, 0f);
         foreach (HexPillarEnd selectedEnd in HexTerrainEditor.selectedEnds)
         {
-            float delta = Handle(selectedEnd);
+            float delta = Handle(selectedEnd, 1f, new Color(1f, 0.75f, 0f));
 
             if (delta != 0f)
             {
                 if (selectedEnd.isTopEnd)
-                    MoveSelectedTopsByAmount(delta);
+                    MoveSelectedTopsByAmount(delta, true);
                 else
-                    MoveSelectedBottomsByAmount(-delta);
+                    MoveSelectedBottomsByAmount(-delta, true);
 
                 HexTerrainEditor.RedrawSelections();
             }
         }
     }
 
-    static float Handle(HexPillarEnd end)
+    public static void OnSelectionModeVertices()
     {
+        foreach (HexPillarEnd selectedEnd in HexTerrainEditor.selectedEnds)
+        {
+            float delta = Handle(selectedEnd, 0.5f, new Color(0f, 1f, 0.25f));
+
+            if (delta != 0f)
+            {
+                if (selectedEnd.isTopEnd)
+                    MoveSelectedTopsByAmount(delta, false);
+                else
+                    MoveSelectedBottomsByAmount(-delta, false);
+
+                HexTerrainEditor.RedrawSelections();
+            }
+        }
+    }
+
+    static float Handle(HexPillarEnd end, float size, Color color)
+    {
+        Handles.color = color;
+
         Vector3 positionBefore = end.transform.TransformPoint(end.transform.localPosition - new Vector3(0f, end.centerHeight, 0f));
         Vector3 direction = end.transform.TransformDirection(end.isTopEnd ? end.transform.up : -end.transform.up);
 
         EditorGUI.BeginChangeCheck();
-        Vector3 positionAfter = Handles.Slider(positionBefore, direction, 1f, Handles.ArrowCap, 0f);
+        Vector3 positionAfter = Handles.Slider(positionBefore, direction, size, Handles.ArrowCap, 0f);
         if (EditorGUI.EndChangeCheck())
         {
             foreach (HexPillarEnd selectedEnd in HexTerrainEditor.selectedEnds)
@@ -41,7 +60,7 @@ public static class HexPillarEndEditor
         return Vector3.Dot(positionDelta, direction);
     }
 
-    public static void MoveEndByAmount(HexPillarEnd end, float amount)
+    public static void MoveEndByAmount(HexPillarEnd end, float amount, bool moveAllCorners)
     {
         float amountForThisEnd = end.isTopEnd ? amount : -amount;
 
@@ -65,21 +84,21 @@ public static class HexPillarEndEditor
         end.SnapPointsToIncrement(end.GetTerrain().heightSnap);
     }
 
-    public static void MoveSelectedTopsByAmount(float amount)
+    public static void MoveSelectedTopsByAmount(float amount, bool moveAllCorners)
     {
         foreach (HexPillarEnd selectedEnd in HexTerrainEditor.selectedEnds)
         {
             if (selectedEnd.isTopEnd)
-                MoveEndByAmount(selectedEnd, amount);
+                MoveEndByAmount(selectedEnd, amount, moveAllCorners);
         }
     }
 
-    public static void MoveSelectedBottomsByAmount(float amount)
+    public static void MoveSelectedBottomsByAmount(float amount, bool moveAllCorners)
     {
         foreach (HexPillarEnd selectedEnd in HexTerrainEditor.selectedEnds)
         {
             if (!selectedEnd.isTopEnd)
-                MoveEndByAmount(selectedEnd, amount);
+                MoveEndByAmount(selectedEnd, amount, moveAllCorners);
         }
     }
 

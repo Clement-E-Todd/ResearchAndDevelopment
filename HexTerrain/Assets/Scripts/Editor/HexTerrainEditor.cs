@@ -7,6 +7,14 @@ using System.Collections.Generic;
 [ExecuteInEditMode]
 public class HexTerrainEditor : Editor
 {
+    enum SelectionMode
+    {
+        Pillars,
+        Vertices,
+        MAX
+    }
+    static SelectionMode selectionMode = SelectionMode.Pillars;
+
     public static HexTerrain selectedTerrain { get; private set; }
     public static HexPillar[] selectedPillars { get; private set; }
     public static HexPillarEnd[] selectedEnds { get; private set; }
@@ -33,13 +41,35 @@ public class HexTerrainEditor : Editor
             }
 
             if (selectedPillars.Length > 0)
-                HexPillarEditor.OnSceneGUI();
+            {
+                switch (selectionMode)
+                {
+                    case SelectionMode.Pillars:
+                        HexPillarEditor.OnSelectionModePillars();
+                        break;
+                        
+                    case SelectionMode.Vertices:
+                        HexPillarEditor.OnSelectionModeVertices();
+                        break;
+                }
+            }
 
             if (selectedEnds.Length > 0)
-                HexPillarEndEditor.OnSceneGUI();
+            {
+                switch (selectionMode)
+                {
+                    case SelectionMode.Pillars:
+                        HexPillarEndEditor.OnSelectionModePillars();
+                        break;
 
-            if (selectedCorners.Length > 0)
-                HexPillarCornerEditor.OnSceneGUI();
+                    case SelectionMode.Vertices:
+                        HexPillarEndEditor.OnSelectionModeVertices();
+                        break;
+                }
+            }
+
+            if (selectedCorners.Length > 0 && selectionMode == SelectionMode.Vertices)
+                HexPillarCornerEditor.OnSelectionModeVertices();
 
             HandleUtility.Repaint();
         }
@@ -56,29 +86,38 @@ public class HexTerrainEditor : Editor
         List<HexPillarEnd> newSelectedEnds = new List<HexPillarEnd>();
         List<HexPillarCorner> newSelectedCorners = new List<HexPillarCorner>();
 
-        foreach (Transform transform in Selection.transforms)
+        foreach (GameObject selection in Selection.gameObjects)
         {
-            if (transform.GetComponent<HexTerrain>() && (!selectedTerrain || Selection.activeTransform == transform))
+            if (selection.GetComponent<HexTerrain>() && (!selectedTerrain || Selection.activeTransform == selection))
             {
-                selectedTerrain = transform.GetComponent<HexTerrain>();
+                selectedTerrain = selection.GetComponent<HexTerrain>();
             }
 
-            if (transform.GetComponent<HexPillar>())
+            if (selection.GetComponent<HexPillar>())
             {
-                selectedTerrain = transform.GetComponent<HexPillar>().GetTerrain();
-                newSelectedPillars.Add(transform.GetComponent<HexPillar>());
+                selectedTerrain = selection.GetComponent<HexPillar>().GetTerrain();
+                newSelectedPillars.Add(selection.GetComponent<HexPillar>());
+
+                if (selectionMode == SelectionMode.Pillars)
+                {
+                    if (!newSelectedEnds.Contains(selection.GetComponent<HexPillar>().topEnd))
+                        newSelectedEnds.Add(selection.GetComponent<HexPillar>().topEnd);
+
+                    if (!newSelectedEnds.Contains(selection.GetComponent<HexPillar>().bottomEnd))
+                        newSelectedEnds.Add(selection.GetComponent<HexPillar>().bottomEnd);
+                }
             }
 
-            if (transform.GetComponent<HexPillarEnd>())
+            if (selection.GetComponent<HexPillarEnd>())
             {
-                selectedTerrain = transform.GetComponent<HexPillarEnd>().GetTerrain();
-                newSelectedEnds.Add(transform.GetComponent<HexPillarEnd>());
+                selectedTerrain = selection.GetComponent<HexPillarEnd>().GetTerrain();
+                newSelectedEnds.Add(selection.GetComponent<HexPillarEnd>());
             }
 
-            if (transform.GetComponent<HexPillarCorner>())
+            if (selection.GetComponent<HexPillarCorner>())
             {
-                selectedTerrain = transform.GetComponent<HexPillarCorner>().GetTerrain();
-                newSelectedCorners.Add(transform.GetComponent<HexPillarCorner>());
+                selectedTerrain = selection.GetComponent<HexPillarCorner>().GetTerrain();
+                newSelectedCorners.Add(selection.GetComponent<HexPillarCorner>());
             }
         }
 
@@ -101,11 +140,14 @@ public class HexTerrainEditor : Editor
     {
         Handles.BeginGUI();
         GUILayout.BeginArea(new Rect(
-            Screen.width * 0.05f, Screen.height * 0.875f,
-            Screen.width * 0.9f, Screen.height * 0.125f));
+            Screen.width * 0.05f, Screen.height * 0.825f,
+            Screen.width * 0.9f, Screen.height * 0.175f));
 
         if (GUILayout.Button("Create New Hex Pillars"))
             HexPillarEditor.OnCreateNewPillarsPressed();
+
+        if (GUILayout.Button("Selection Mode: " + (selectionMode == SelectionMode.Pillars ? "Pillars" : "Vertices")))
+            selectionMode = (selectionMode == SelectionMode.Pillars ? SelectionMode.Vertices : SelectionMode.Pillars);
 
         GUILayout.EndArea();
         Handles.EndGUI();

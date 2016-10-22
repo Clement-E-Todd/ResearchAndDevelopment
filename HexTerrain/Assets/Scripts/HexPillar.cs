@@ -41,6 +41,14 @@ public class HexPillar : HexTerrainElement
         bottomEnd.UpdatePosition();
     }
 
+    void OnDestroy()
+    {
+        topEnd.DestoryWithoutRecreating();
+        bottomEnd.DestoryWithoutRecreating();
+
+        terrain.pillarGrid[coord].Remove(this);
+    }
+
     public void Constrain(float minHeight, float maxHeight, HexPillar pillarAbove, HexPillar pillarBelow)
     {
         topEnd.centerHeight = Mathf.Clamp(topEnd.centerHeight, bottomEnd.centerHeight, maxHeight);
@@ -248,7 +256,10 @@ public class HexPillar : HexTerrainElement
 
     void OnUndoRedo()
     {
-        GenerateMesh();
+        if (this)
+        {
+            GenerateMesh();
+        }
     }
 
     public override HexTerrain GetTerrain()
