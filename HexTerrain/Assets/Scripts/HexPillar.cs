@@ -6,18 +6,15 @@ using System.Collections.Generic;
 [RequireComponent(typeof(MeshRenderer))]
 public class HexPillar : HexTerrainElement
 {
-    public HexTerrain terrain { get; private set; }
-    public HexGrid.Coord coord { get; private set; }
-
+    public HexTerrain terrain;
+    public HexGrid.Coord coord;
     public HexPillarEnd topEnd;
     public HexPillarEnd bottomEnd;
 
     public bool drawTopEnd = true;
     public Material topMaterial;
-
     public bool drawBottomEnd = true;
     public Material bottomMaterial;
-
     public Material[] wallMaterials = new Material[(int)HexEdgeDirection.MAX];
     public float sideTextureHeight = 1f;
 

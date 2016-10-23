@@ -29,6 +29,8 @@ public class HexTerrainEditor : Editor
     {
         if (terrainElementsSelected)
         {
+            FindMissingPillars();
+
             HexPillarEditor.UpdatePillarCreationState();
 
             Tools.hidden = HexPillarEditor.HideUnityTools() || HexPillarEndEditor.HideUnityTools() || HexPillarCornerEditor.HideUnityTools();
@@ -40,7 +42,7 @@ public class HexTerrainEditor : Editor
                 ShowTerrainEditorControls();
             }
 
-            if (selectedPillars.Length > 0)
+            if (selectedPillars!= null && selectedPillars.Length > 0)
             {
                 switch (selectionMode)
                 {
@@ -54,7 +56,7 @@ public class HexTerrainEditor : Editor
                 }
             }
 
-            if (selectedEnds.Length > 0)
+            if (selectedEnds != null && selectedEnds.Length > 0)
             {
                 switch (selectionMode)
                 {
@@ -68,12 +70,12 @@ public class HexTerrainEditor : Editor
                 }
             }
 
-            if (selectedCorners.Length > 0 && selectionMode == SelectionMode.Vertices)
+            if (selectedCorners != null && selectedCorners.Length > 0 && selectionMode == SelectionMode.Vertices)
                 HexPillarCornerEditor.OnSelectionModeVertices();
 
             HandleUtility.Repaint();
         }
-        else if (Tools.hidden)
+        else if (Tools.hidden == true)
         {
             Tools.hidden = false;
         }
@@ -203,5 +205,21 @@ public class HexTerrainEditor : Editor
             Screen.height * 0.05f);
 
         return new Rect(new Vector2(padding + (buttonSize.x + padding) * buttonIndex, Screen.height - (buttonSize.y * 2f) - padding), buttonSize);
+    }
+
+    void FindMissingPillars()
+    {
+        if (selectedTerrain && selectedTerrain.pillarGrid.Count != selectedTerrain.transform.childCount)
+        {
+            selectedTerrain.pillarGrid.Clear();
+
+            for (int i = 0; i < selectedTerrain.transform.childCount; ++i)
+            {
+                if (selectedTerrain.transform.GetChild(i).GetComponent<HexPillar>())
+                {
+                    selectedTerrain.AddExistingPillar(selectedTerrain.transform.GetChild(i).GetComponent<HexPillar>());
+                }
+            }
+        }
     }
 }

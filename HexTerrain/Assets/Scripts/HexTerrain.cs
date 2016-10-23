@@ -8,7 +8,7 @@ public class HexTerrain : HexTerrainElement
     public float heightSnap = 0.5f;
     public float minHeight = 0f;
     public float maxHeight = 20f;
-
+    
     public Material[] floorMaterials;
     public Material[] ceilingMaterials;
     public Material[] wallMaterials;
@@ -17,8 +17,11 @@ public class HexTerrain : HexTerrainElement
 
     const int sidesPerHex = 6;
 
-    public HexPillar AddPillar(HexGrid.Coord coord, float topHeight = 1f, float bottomHeight = 0f)
+    public HexPillar AddNewPillar(HexGrid.Coord coord, float topHeight = 1f, float bottomHeight = 0f)
     {
+        if (floorMaterials == null || ceilingMaterials == null || wallMaterials == null)
+            return null;
+
         GameObject pillarObject = new GameObject();
         pillarObject.name = string.Format("Pillar [{0}, {1}]", coord.x, coord.y);
         pillarObject.transform.SetParent(transform);
@@ -71,6 +74,20 @@ public class HexTerrain : HexTerrainElement
         pillar.GenerateMesh();
 
         return pillar;
+    }
+
+    public void AddExistingPillar(HexPillar pillar)
+    {
+        if (!pillarGrid.ContainsItemAtCoord(pillar.coord))
+        {
+            pillarGrid.Add(pillar.coord, new List<HexPillar>());
+        }
+        pillarGrid[pillar.coord].Add(pillar);
+
+        if (pillarGrid[pillar.coord].Count > 1)
+        {
+            pillarGrid[pillar.coord] = pillarGrid[pillar.coord].OrderBy(x => (x.topEnd.centerHeight + x.bottomEnd.centerHeight) / 2).ToList();
+        }
     }
 
     public Vector3 GetLocalPositionForCoord(HexGrid.Coord coord, float height = 0f)

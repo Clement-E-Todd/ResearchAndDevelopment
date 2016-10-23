@@ -2,11 +2,11 @@
 
 public class HexPillarCorner : HexTerrainElement
 {
-    public HexPillarEnd end { get; private set; }
-    public HexCornerDirection direction { get; private set; }
-    public bool isOnTopEnd { get { return end.isTopEnd; } }
-    
+    public HexPillarEnd end;
+    public HexCornerDirection direction;
     public float height;
+    
+    public bool isOnTopEnd { get { return end.isTopEnd; } }
 
     public void Init(HexPillarEnd end, HexCornerDirection corner)
     {

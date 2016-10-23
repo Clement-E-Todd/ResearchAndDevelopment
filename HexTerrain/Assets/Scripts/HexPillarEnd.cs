@@ -2,9 +2,8 @@
 
 public class HexPillarEnd : HexTerrainElement
 {
-    public HexPillar pillar { get; private set; }
-    public bool isTopEnd { get; private set; }
-
+    public HexPillar pillar;
+    public bool isTopEnd;
     public float centerHeight;
     public HexPillarCorner[] corners = new HexPillarCorner[(int)HexCornerDirection.MAX];
 

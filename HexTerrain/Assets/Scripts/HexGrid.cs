@@ -12,6 +12,7 @@ using System.Collections.Generic;
  */
 
 /*
+[System.Serializable]
 public class HexGrid<T> : IEnumerable<T>
 {
    public T this[int x, int y]
@@ -74,11 +75,14 @@ public class HexGrid<T> : IEnumerable<T>
  * TODO: Replace this with HexGrid<T> once Unity supports newer versions of Mono / .Net
  * (Should supposedly be supported in Unity 5.5)
  */
+[System.Serializable]
 public abstract class HexGrid
 {
+    [System.Serializable]
     public struct Coord
     {
-        public int x, y;
+        [SerializeField] public int x;
+        [SerializeField] public int y;
         public Coord(int x, int y)
         {
             this.x = x;
@@ -126,6 +130,7 @@ public abstract class HexGrid
  * TODO: Replace this with HexGrid<T> once Unity supports newer versions of Mono / .Net
  * (Should supposedly be supported in Unity 5.5)
  */
+[System.Serializable]
 public class HexTerrainPillarGrid : HexGrid, IEnumerable<List<HexPillar>>
 {
     public List<HexPillar> this[Coord coord]
@@ -140,6 +145,11 @@ public class HexTerrainPillarGrid : HexGrid, IEnumerable<List<HexPillar>>
         set { items[new Coord(x, y)] = value; }
     }
 
+    public int Count
+    {
+        get { return items.Count; }
+    }
+
     private Dictionary<Coord, List<HexPillar>> items = new Dictionary<Coord, List<HexPillar>>();
 
     public bool Add(Coord coord, List<HexPillar> item)
@@ -152,6 +162,11 @@ public class HexTerrainPillarGrid : HexGrid, IEnumerable<List<HexPillar>>
 
         items.Add(coord, item);
         return true;
+    }
+
+    public void Clear()
+    {
+        items.Clear();
     }
 
     public bool TryGetCoordForItem(List<HexPillar> item, out Coord coord)

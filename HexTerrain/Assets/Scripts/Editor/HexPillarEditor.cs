@@ -66,7 +66,7 @@ public static class HexPillarEditor
         Handles.color = new Color(1f, 0.75f, 0f);
 
         EditorGUI.BeginChangeCheck();
-        Vector3 positionAfter = Handles.Slider(positionBefore, direction, 0.35f, Handles.SphereCap, 0f);
+        Vector3 positionAfter = Handles.Slider(positionBefore, direction, 0.25f, Handles.CylinderCap, 0f);
         if (EditorGUI.EndChangeCheck())
         {
             foreach (HexPillarEnd selectedEnd in HexTerrainEditor.selectedEnds)
@@ -346,7 +346,7 @@ public static class HexPillarEditor
         {
             foreach (HexGrid.Coord newPillarCoord in newPillarCoords)
             {
-                HexPillar newPillar = terrain.AddPillar(newPillarCoord, newPillarTopHeight, newPillarBottomHeight);
+                HexPillar newPillar = terrain.AddNewPillar(newPillarCoord, newPillarTopHeight, newPillarBottomHeight);
                 Undo.RegisterCreatedObjectUndo(newPillar.gameObject, "Create Pillar");
             }
 
@@ -429,7 +429,7 @@ public static class HexPillarEditor
 
     public static bool HideUnityTools()
     {
-        return HexTerrainEditor.selectedPillars.Length > 0 || pillarCreationState != PillarCreationState.None;
+        return HexTerrainEditor.selectedPillars != null && (HexTerrainEditor.selectedPillars.Length > 0 || pillarCreationState != PillarCreationState.None);
     }
 
     public static bool HideTerrainEditorControls()

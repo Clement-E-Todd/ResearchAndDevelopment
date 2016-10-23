@@ -117,7 +117,7 @@ public static class HexPillarEndEditor
 
     public static bool HideUnityTools()
     {
-        return HexTerrainEditor.selectedEnds.Length > 0;
+        return HexTerrainEditor.selectedEnds != null && HexTerrainEditor.selectedEnds.Length > 0;
     }
 
     public static bool HideTerrainEditorControls()
