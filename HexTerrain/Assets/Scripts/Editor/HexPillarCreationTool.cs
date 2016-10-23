@@ -28,6 +28,8 @@ namespace HexTerrain
 
         static float totalMouseDelta;
 
+        static bool nextStateReady = false;
+
         public static void CancelPillarCreation()
         {
             pillarCreationState = PillarCreationState.None;
@@ -38,6 +40,14 @@ namespace HexTerrain
             if (!HexTerrainEditor.selectedTerrain)
             {
                 return;
+            }
+
+            if (!nextStateReady)
+            {
+                nextStateReady = Event.current.type != EventType.MouseUp;
+
+                if (!nextStateReady)
+                    return;
             }
 
             switch (pillarCreationState)
@@ -101,6 +111,7 @@ namespace HexTerrain
                 else if (Event.current.type == EventType.MouseUp && Event.current.button == 0)
                 {
                     pillarCreationState = PillarCreationState.ChooseTopHeight;
+                    nextStateReady = false;
                     totalMouseDelta = 0f;
                 }
 
@@ -122,7 +133,8 @@ namespace HexTerrain
 
             if (Event.current.isMouse)
             {
-                totalMouseDelta -= Event.current.delta.y;
+                if (!Event.current.alt)
+                    totalMouseDelta -= Event.current.delta.y;
 
                 newPillarTopHeight = Vector3.Dot(terrain.transform.up, createPlanePoint);
                 newPillarTopHeight += (totalMouseDelta / Screen.height) * (terrain.maxHeight - terrain.minHeight);
@@ -138,7 +150,7 @@ namespace HexTerrain
                 DrawRingAtCoord(terrain, newPillarCoord, newPillarTopHeight, true);
             }
 
-            if (Event.current.type == EventType.MouseUp)
+            if (Event.current.type == EventType.MouseUp && !Event.current.alt)
             {
                 if (Event.current.button == 0)
                 {
@@ -154,6 +166,7 @@ namespace HexTerrain
                     newPillarCoords.Clear();
                     pillarCreationState = PillarCreationState.None;
                 }
+                nextStateReady = false;
             }
         }
 
@@ -163,7 +176,8 @@ namespace HexTerrain
 
             if (Event.current.isMouse)
             {
-                totalMouseDelta -= Event.current.delta.y;
+                if (!Event.current.alt)
+                    totalMouseDelta -= Event.current.delta.y;
 
                 newPillarBottomHeight = newPillarTopHeight;
                 newPillarBottomHeight += (totalMouseDelta / Screen.height) * (terrain.maxHeight - terrain.minHeight);
@@ -180,7 +194,7 @@ namespace HexTerrain
                 DrawRingAtCoord(terrain, newPillarCoord, newPillarBottomHeight, true);
             }
 
-            if (Event.current.type == EventType.MouseUp)
+            if (Event.current.type == EventType.MouseUp && !Event.current.alt)
             {
                 if (Event.current.button == 0)
                 {
@@ -205,6 +219,7 @@ namespace HexTerrain
                     newPillarCoords.Clear();
                     pillarCreationState = PillarCreationState.None;
                 }
+                nextStateReady = false;
             }
         }
 
@@ -276,6 +291,7 @@ namespace HexTerrain
             if (pillarCreationState == PillarCreationState.None)
             {
                 pillarCreationState = PillarCreationState.ChooseHorizontalPositions;
+                nextStateReady = false;
             }
         }
 
