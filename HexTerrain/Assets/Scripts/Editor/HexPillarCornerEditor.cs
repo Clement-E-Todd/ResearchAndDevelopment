@@ -16,6 +16,7 @@
                 if (delta != 0f)
                 {
                     MoveSelectedCorners(delta);
+                    HexPillarEndEditor.MoveCenterOfSelectedEnds(delta, selectedCorner.end.isTopEnd);
                     HexTerrainEditor.RedrawSelections();
                 }
             }
@@ -108,21 +109,29 @@
             }
         }
 
-        static void MoveSelectedCorners(float amount)
+        static void MoveCorner(HexPillarCorner corner, float amount)
         {
-            foreach (GameObject selectedObject in Selection.gameObjects)
+            if (corner.isOnTopEnd)
+                corner.height = Mathf.Max(corner.height + amount, corner.end.pillar.bottomEnd.corners[(int)corner.direction].height);
+            else
+                corner.height = Mathf.Min(corner.height + amount, corner.end.pillar.topEnd.corners[(int)corner.direction].height);
+
+            corner.height = Mathf.Round(corner.height / corner.end.pillar.terrain.heightSnap) * corner.end.pillar.terrain.heightSnap;
+        }
+
+        public static void MoveSelectedCorners(float amount)
+        {
+            foreach (HexPillarCorner selectedCorner in HexTerrainEditor.selectedCorners)
             {
-                HexPillarCorner selectedCorner = selectedObject.GetComponent<HexPillarCorner>();
+                MoveCorner(selectedCorner, amount);
+            }
+        }
 
-                if (!selectedCorner)
-                    continue;
-
-                if (selectedCorner.isOnTopEnd)
-                    selectedCorner.height = Mathf.Max(selectedCorner.height + amount, selectedCorner.end.pillar.bottomEnd.corners[(int)selectedCorner.direction].height);
-                else
-                    selectedCorner.height = Mathf.Min(selectedCorner.height + amount, selectedCorner.end.pillar.topEnd.corners[(int)selectedCorner.direction].height);
-
-                selectedCorner.height = Mathf.Round(selectedCorner.height / selectedCorner.end.pillar.terrain.heightSnap) * selectedCorner.end.pillar.terrain.heightSnap;
+        public static void MoveCornersOnEnd(HexPillarEnd end, float amount)
+        {
+            foreach (HexPillarCorner corner in end.corners)
+            {
+                MoveCorner(corner, end.isTopEnd ? amount : -amount);
             }
         }
 

@@ -41,11 +41,8 @@ namespace HexTerrain
 
                 if (delta != 0f)
                 {
-                    if (selectedEnd.isTopEnd)
-                        MoveTopsOfSelectedPillars(delta);
-                    else
-                        MoveBottomsOfSelectedPillars(delta);
-
+                    MoveCenterOfSelectedEnds(delta, selectedEnd.isTopEnd);
+                    HexPillarCornerEditor.MoveSelectedCorners(delta);
                     HexTerrainEditor.RedrawSelections();
                 }
             }
@@ -164,8 +161,19 @@ namespace HexTerrain
                 foreach (HexPillarEnd selectedEnd in new HexPillarEnd[] { selectedPillar.topEnd, selectedPillar.bottomEnd })
                 {
                     if (!selectedEnd.isTopEnd)
-                        MoveEndByAmount(selectedEnd, amount, true);
+                        MoveEndByAmount(selectedEnd, -amount, true);
                 }
+            }
+        }
+
+        public static void MoveCenterOfSelectedEnds(float amount, bool handlePointsUp)
+        {
+            foreach (HexPillarEnd selectedEnd in HexTerrainEditor.selectedEnds)
+            {
+                float realAmount = (selectedEnd.isTopEnd == handlePointsUp) ? amount : -amount;
+
+                MoveEndByAmount(selectedEnd, selectedEnd.isTopEnd ? realAmount : -realAmount, true);
+                HexPillarCornerEditor.MoveCornersOnEnd(selectedEnd, -realAmount);
             }
         }
 
