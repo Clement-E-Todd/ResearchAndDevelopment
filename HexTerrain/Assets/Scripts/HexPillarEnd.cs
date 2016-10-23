@@ -1,109 +1,112 @@
-﻿using UnityEngine;
-
-public class HexPillarEnd : HexTerrainElement
+﻿namespace HexTerrain
 {
-    public HexPillar pillar;
-    public bool isTopEnd;
-    public float centerHeight;
-    public HexPillarCorner[] corners = new HexPillarCorner[(int)HexCornerDirection.MAX];
+    using UnityEngine;
 
-    public void Init(HexPillar pillar, bool isTopEnd)
+    public class HexPillarEnd : HexTerrainElement
     {
-        this.pillar = pillar;
-        this.isTopEnd = isTopEnd;
+        public HexPillar pillar;
+        public bool isTopEnd;
+        public float centerHeight;
+        public HexPillarCorner[] corners = new HexPillarCorner[(int)HexCornerDirection.MAX];
 
-        for (HexCornerDirection corner = 0; corner < HexCornerDirection.MAX; ++corner)
+        public void Init(HexPillar pillar, bool isTopEnd)
         {
-            string cornerName = string.Format("Corner ({0}, {1})", corner.ToString(), isTopEnd ? "Top" : "Bottom");
-            GameObject topCornerGameObject = new GameObject(cornerName, typeof(HexPillarCorner));
-            topCornerGameObject.transform.SetParent(transform);
-            corners[(int)corner] = topCornerGameObject.GetComponent<HexPillarCorner>();
-            corners[(int)corner].Init(this, corner);
-            corners[(int)corner].UpdatePosition();
-        }
-    }
+            this.pillar = pillar;
+            this.isTopEnd = isTopEnd;
 
-    void OnDestroy()
-    {
-        for (HexCornerDirection direction = 0; direction < HexCornerDirection.MAX; ++direction)
-        {
-            if (corners[(int)direction])
-                corners[(int)direction].DestoryWithoutRecreating();
-        }
-
-        if (doNotRecreateOnDestroy)
-            return;
-
-        GameObject endGameObject = new GameObject((isTopEnd ? "Top" : "Bottom") + " End", typeof(HexPillarEnd));
-        endGameObject.transform.SetParent(pillar.transform);
-        HexPillarEnd newEnd = endGameObject.GetComponent<HexPillarEnd>();
-
-        if (isTopEnd)
-            pillar.topEnd = newEnd;
-        else
-            pillar.bottomEnd = newEnd;
-
-        newEnd.Init(pillar, isTopEnd);
-
-        newEnd.centerHeight = newEnd.GetOtherEnd().centerHeight;
-        for (HexCornerDirection direction = 0; direction < HexCornerDirection.MAX; ++direction)
-        {
-            newEnd.corners[(int)direction].height = newEnd.GetOtherEnd().corners[(int)direction].height;
+            for (HexCornerDirection corner = 0; corner < HexCornerDirection.MAX; ++corner)
+            {
+                string cornerName = string.Format("Corner ({0}, {1})", corner.ToString(), isTopEnd ? "Top" : "Bottom");
+                GameObject topCornerGameObject = new GameObject(cornerName, typeof(HexPillarCorner));
+                topCornerGameObject.transform.SetParent(transform);
+                corners[(int)corner] = topCornerGameObject.GetComponent<HexPillarCorner>();
+                corners[(int)corner].Init(this, corner);
+                corners[(int)corner].UpdatePosition();
+            }
         }
 
-        newEnd.UpdatePosition();
-
-        pillar.GenerateMesh();
-    }
-
-    public void UpdatePosition()
-    {
-        transform.localPosition = new Vector3(0, centerHeight, 0);
-
-        foreach (HexPillarCorner corner in corners)
+        void OnDestroy()
         {
-            corner.UpdatePosition();
+            for (HexCornerDirection direction = 0; direction < HexCornerDirection.MAX; ++direction)
+            {
+                if (corners[(int)direction])
+                    corners[(int)direction].DestoryWithoutRecreating();
+            }
+
+            if (doNotRecreateOnDestroy)
+                return;
+
+            GameObject endGameObject = new GameObject((isTopEnd ? "Top" : "Bottom") + " End", typeof(HexPillarEnd));
+            endGameObject.transform.SetParent(pillar.transform);
+            HexPillarEnd newEnd = endGameObject.GetComponent<HexPillarEnd>();
+
+            if (isTopEnd)
+                pillar.topEnd = newEnd;
+            else
+                pillar.bottomEnd = newEnd;
+
+            newEnd.Init(pillar, isTopEnd);
+
+            newEnd.centerHeight = newEnd.GetOtherEnd().centerHeight;
+            for (HexCornerDirection direction = 0; direction < HexCornerDirection.MAX; ++direction)
+            {
+                newEnd.corners[(int)direction].height = newEnd.GetOtherEnd().corners[(int)direction].height;
+            }
+
+            newEnd.UpdatePosition();
+
+            pillar.GenerateMesh();
         }
-    }
 
-    public void SetFlatHeight(float height)
-    {
-        centerHeight = height;
-
-        for (int i = 0; i < corners.Length; ++i)
+        public void UpdatePosition()
         {
-            corners[i].height = height;
-        }
-    }
+            transform.localPosition = new Vector3(0, centerHeight, 0);
 
-    public void SnapPointsToIncrement(float increment)
-    {
-        centerHeight = Mathf.Round(centerHeight / increment) * increment;
+            foreach (HexPillarCorner corner in corners)
+            {
+                corner.UpdatePosition();
+            }
+        }
 
-        for (int i = 0; i < corners.Length; ++i)
+        public void SetFlatHeight(float height)
         {
-            corners[i].height = Mathf.Round(corners[i].height / increment) * increment;
-        }
-    }
+            centerHeight = height;
 
-    public HexPillarEnd GetOtherEnd()
-    {
-        if (pillar.topEnd != this)
-        {
-            return pillar.topEnd;
+            for (int i = 0; i < corners.Length; ++i)
+            {
+                corners[i].height = height;
+            }
         }
-        else if (pillar.bottomEnd != this)
-        {
-            return pillar.bottomEnd;
-        }
-        else
-        {
-            return null;
-        }
-    }
 
-    public override HexTerrain GetTerrain()
-    {
-        return pillar.terrain;
+        public void SnapPointsToIncrement(float increment)
+        {
+            centerHeight = Mathf.Round(centerHeight / increment) * increment;
+
+            for (int i = 0; i < corners.Length; ++i)
+            {
+                corners[i].height = Mathf.Round(corners[i].height / increment) * increment;
+            }
+        }
+
+        public HexPillarEnd GetOtherEnd()
+        {
+            if (pillar.topEnd != this)
+            {
+                return pillar.topEnd;
+            }
+            else if (pillar.bottomEnd != this)
+            {
+                return pillar.bottomEnd;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public override HexTerrain GetTerrain()
+        {
+            return pillar.terrain;
+        }
     }
 }

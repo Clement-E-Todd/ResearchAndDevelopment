@@ -1,223 +1,215 @@
-﻿using UnityEngine;
-using UnityEditor;
-using System.Collections.Generic;
-
-[CustomEditor(typeof(GameObject))]
-[CanEditMultipleObjects]
-[ExecuteInEditMode]
-public class HexTerrainEditor : Editor
+﻿namespace HexTerrain
 {
-    enum SelectionMode
+    using UnityEngine;
+    using UnityEditor;
+    using System.Collections.Generic;
+
+    [CustomEditor(typeof(GameObject))]
+    [CanEditMultipleObjects]
+    [ExecuteInEditMode]
+    public class HexTerrainEditor : Editor
     {
-        Pillars,
-        Vertices,
-        MAX
-    }
-    static SelectionMode selectionMode = SelectionMode.Pillars;
-
-    public static HexTerrain selectedTerrain { get; private set; }
-    public static HexPillar[] selectedPillars { get; private set; }
-    public static HexPillarEnd[] selectedEnds { get; private set; }
-    public static HexPillarCorner[] selectedCorners { get; private set; }
-
-    public static bool xRayMode { get; private set; }
-
-    bool terrainElementsSelected = false;
-    public bool editorControlsVisible = true;
-
-    public void OnSceneGUI()
-    {
-        if (terrainElementsSelected)
+        enum SelectionMode
         {
-            FindMissingPillars();
-
-            HexPillarEditor.UpdatePillarCreationState();
-
-            Tools.hidden = HexPillarEditor.HideUnityTools() || HexPillarEndEditor.HideUnityTools() || HexPillarCornerEditor.HideUnityTools();
-            
-            if (!HexPillarEditor.HideTerrainEditorControls() &&
-                !HexPillarEndEditor.HideTerrainEditorControls() &&
-                !HexPillarCornerEditor.HideTerrainEditorControls())
-            {
-                ShowTerrainEditorControls();
-            }
-
-            if (selectedPillars!= null && selectedPillars.Length > 0)
-            {
-                switch (selectionMode)
-                {
-                    case SelectionMode.Pillars:
-                        HexPillarEditor.OnSelectionModePillars();
-                        break;
-                        
-                    case SelectionMode.Vertices:
-                        HexPillarEditor.OnSelectionModeVertices();
-                        break;
-                }
-            }
-
-            if (selectedEnds != null && selectedEnds.Length > 0)
-            {
-                switch (selectionMode)
-                {
-                    case SelectionMode.Pillars:
-                        HexPillarEndEditor.OnSelectionModePillars();
-                        break;
-
-                    case SelectionMode.Vertices:
-                        HexPillarEndEditor.OnSelectionModeVertices();
-                        break;
-                }
-            }
-
-            if (selectedCorners != null && selectedCorners.Length > 0 && selectionMode == SelectionMode.Vertices)
-                HexPillarCornerEditor.OnSelectionModeVertices();
-
-            HandleUtility.Repaint();
+            Pillars,
+            Vertices,
+            MAX
         }
-        else if (Tools.hidden == true)
+        static SelectionMode selectionMode = SelectionMode.Pillars;
+
+        public static HexTerrain selectedTerrain { get; private set; }
+        public static HexPillar[] selectedPillars { get; private set; }
+        public static HexPillarEnd[] selectedEnds { get; private set; }
+        public static HexPillarCorner[] selectedCorners { get; private set; }
+
+        public static bool xRayMode { get; private set; }
+
+        bool terrainElementsSelected = false;
+        public bool editorControlsVisible = true;
+
+        public void OnSceneGUI()
         {
+            if (terrainElementsSelected)
+            {
+                FindMissingPillars();
+
+                HexPillarCreationTool.UpdatePillarCreationState();
+
+                Tools.hidden = (
+                    HexPillarEditor.ShouldHideUnityTools() ||
+                    HexPillarEndEditor.ShouldHideUnityTools() ||
+                    HexPillarCornerEditor.ShouldHideUnityTools());
+
+                if (!HexPillarCreationTool.creationInProgress)
+                {
+                    ShowTerrainEditorControls();
+                }
+
+                if (selectedPillars != null && selectedPillars.Length > 0)
+                {
+                    switch (selectionMode)
+                    {
+                        case SelectionMode.Pillars:
+                            HexPillarEditor.OnSelectionModePillars();
+                            HexPillarEndEditor.OnSelectionModePillars();
+                            break;
+
+                        case SelectionMode.Vertices:
+                            HexPillarEditor.OnSelectionModeVertices();
+                            break;
+                    }
+                }
+
+                if (selectedEnds != null && selectedEnds.Length > 0 && selectionMode == SelectionMode.Vertices)
+                    HexPillarEndEditor.OnSelectionModeVertices();
+
+                if (selectedCorners != null && selectedCorners.Length > 0 && selectionMode == SelectionMode.Vertices)
+                    HexPillarCornerEditor.OnSelectionModeVertices();
+
+                HandleUtility.Repaint();
+            }
+            else if (Tools.hidden == true)
+            {
+                Tools.hidden = false;
+            }
+
+            UpdateSelections();
+        }
+
+        void UpdateSelections()
+        {
+            selectedTerrain = null;
+            List<HexPillar> newSelectedPillars = new List<HexPillar>();
+            List<HexPillarEnd> newSelectedEnds = new List<HexPillarEnd>();
+            List<HexPillarCorner> newSelectedCorners = new List<HexPillarCorner>();
+
+            foreach (GameObject selection in Selection.gameObjects)
+            {
+                if (selection.GetComponent<HexTerrain>() && (!selectedTerrain || Selection.activeTransform == selection))
+                {
+                    selectedTerrain = selection.GetComponent<HexTerrain>();
+                }
+
+                if (selection.GetComponent<HexPillar>())
+                {
+                    selectedTerrain = selection.GetComponent<HexPillar>().GetTerrain();
+                    newSelectedPillars.Add(selection.GetComponent<HexPillar>());
+                }
+
+                if (selection.GetComponent<HexPillarEnd>())
+                {
+                    selectedTerrain = selection.GetComponent<HexPillarEnd>().GetTerrain();
+                    newSelectedEnds.Add(selection.GetComponent<HexPillarEnd>());
+                }
+
+                if (selection.GetComponent<HexPillarCorner>())
+                {
+                    selectedTerrain = selection.GetComponent<HexPillarCorner>().GetTerrain();
+                    newSelectedCorners.Add(selection.GetComponent<HexPillarCorner>());
+                }
+            }
+
+            if (selectedTerrain)
+            {
+                terrainElementsSelected = true;
+
+                selectedPillars = newSelectedPillars.ToArray();
+                selectedEnds = newSelectedEnds.ToArray();
+                selectedCorners = newSelectedCorners.ToArray();
+
+                HexPillarCornerEditor.UpdateOverlappingSelections();
+            }
+            else if (terrainElementsSelected)
+            {
+                OnTerrainElementsDeselected();
+                terrainElementsSelected = false;
+            }
+        }
+
+        void ShowTerrainEditorControls()
+        {
+            Handles.BeginGUI();
+
+            string buttonText = "Create New Hex Pillars";
+            if (GUI.Button(GetEditorControlButtonRect(0), buttonText))
+                HexPillarCreationTool.OnCreateNewPillarsPressed();
+
+            buttonText = "Selection Mode: " + (selectionMode == SelectionMode.Pillars ? "Pillars" : "Vertices");
+            if (GUI.Button(GetEditorControlButtonRect(1), buttonText))
+                selectionMode = (selectionMode == SelectionMode.Pillars ? SelectionMode.Vertices : SelectionMode.Pillars);
+
+            buttonText = "X-Ray Mode: " + (xRayMode ? "ON" : "OFF");
+            if (GUI.Button(GetEditorControlButtonRect(2), buttonText))
+                xRayMode = !xRayMode;
+
+            Handles.EndGUI();
+        }
+
+        void OnTerrainElementsDeselected()
+        {
+            HexPillarCreationTool.CancelPillarCreation();
             Tools.hidden = false;
         }
-        
-        UpdateSelections();
-    }
 
-    void UpdateSelections()
-    {
-        selectedTerrain = null;
-        List<HexPillar> newSelectedPillars = new List<HexPillar>();
-        List<HexPillarEnd> newSelectedEnds = new List<HexPillarEnd>();
-        List<HexPillarCorner> newSelectedCorners = new List<HexPillarCorner>();
-
-        foreach (GameObject selection in Selection.gameObjects)
+        public static void RedrawSelections()
         {
-            if (selection.GetComponent<HexTerrain>() && (!selectedTerrain || Selection.activeTransform == selection))
+            List<HexPillar> pillarsToRedraw = new List<HexPillar>();
+
+            foreach (Transform selectedTransform in Selection.transforms)
             {
-                selectedTerrain = selection.GetComponent<HexTerrain>();
+                if (selectedTransform.GetComponent<HexPillar>() && !pillarsToRedraw.Contains(selectedTransform.GetComponent<HexPillar>()))
+                    pillarsToRedraw.Add(selectedTransform.GetComponent<HexPillar>());
+
+                else if (selectedTransform.GetComponent<HexPillarEnd>() && !pillarsToRedraw.Contains(selectedTransform.GetComponent<HexPillarEnd>().pillar))
+                    pillarsToRedraw.Add(selectedTransform.GetComponent<HexPillarEnd>().pillar);
+
+                else if (selectedTransform.GetComponent<HexPillarCorner>() && !pillarsToRedraw.Contains(selectedTransform.GetComponent<HexPillarCorner>().end.pillar))
+                    pillarsToRedraw.Add(selectedTransform.GetComponent<HexPillarCorner>().end.pillar);
             }
 
-            if (selection.GetComponent<HexPillar>())
+            foreach (HexPillar selectedPillar in pillarsToRedraw)
             {
-                selectedTerrain = selection.GetComponent<HexPillar>().GetTerrain();
-                newSelectedPillars.Add(selection.GetComponent<HexPillar>());
+                selectedPillar.GenerateMesh();
+            }
+        }
 
-                if (selectionMode == SelectionMode.Pillars)
+        static Rect GetEditorControlButtonRect(int buttonIndex)
+        {
+            const int maxButtons = 3;
+            if (buttonIndex < 0 || buttonIndex >= maxButtons)
+            {
+                Debug.LogWarning("Button index out of range.");
+                return new Rect();
+            }
+
+            float padding = Screen.width * 0.025f;
+
+            Vector2 buttonSize = new Vector2(
+                (Screen.width - padding * (maxButtons + 1)) / maxButtons,
+                Screen.height * 0.05f);
+
+            return new Rect(new Vector2(padding + (buttonSize.x + padding) * buttonIndex, Screen.height - (buttonSize.y * 2f) - padding), buttonSize);
+        }
+
+        public static bool IsPointObscured(Vector3 point)
+        {
+            Vector3 cameraPosition = SceneView.currentDrawingSceneView.camera.transform.position;
+            Vector3 direction = (point - cameraPosition).normalized;
+            return Physics.Raycast(cameraPosition, direction, Vector3.Distance(cameraPosition, point) - 0.01f);
+        }
+
+        void FindMissingPillars()
+        {
+            if (selectedTerrain && selectedTerrain.pillarGrid.Count != selectedTerrain.transform.childCount)
+            {
+                selectedTerrain.pillarGrid.Clear();
+
+                for (int i = 0; i < selectedTerrain.transform.childCount; ++i)
                 {
-                    if (!newSelectedEnds.Contains(selection.GetComponent<HexPillar>().topEnd))
-                        newSelectedEnds.Add(selection.GetComponent<HexPillar>().topEnd);
-
-                    if (!newSelectedEnds.Contains(selection.GetComponent<HexPillar>().bottomEnd))
-                        newSelectedEnds.Add(selection.GetComponent<HexPillar>().bottomEnd);
-                }
-            }
-
-            if (selection.GetComponent<HexPillarEnd>())
-            {
-                selectedTerrain = selection.GetComponent<HexPillarEnd>().GetTerrain();
-                newSelectedEnds.Add(selection.GetComponent<HexPillarEnd>());
-            }
-
-            if (selection.GetComponent<HexPillarCorner>())
-            {
-                selectedTerrain = selection.GetComponent<HexPillarCorner>().GetTerrain();
-                newSelectedCorners.Add(selection.GetComponent<HexPillarCorner>());
-            }
-        }
-
-        if (selectedTerrain)
-        {
-            terrainElementsSelected = true;
-
-            selectedPillars = newSelectedPillars.ToArray();
-            selectedEnds = newSelectedEnds.ToArray();
-            selectedCorners = newSelectedCorners.ToArray();
-
-            HexPillarCornerEditor.UpdateOverlappingSelections();
-        }
-        else if (terrainElementsSelected)
-        {
-            OnTerrainElementsDeselected();
-            terrainElementsSelected = false;
-        }
-    }
-
-    void ShowTerrainEditorControls()
-    {
-        Handles.BeginGUI();
-
-        string buttonText = "Create New Hex Pillars";
-        if (GUI.Button(GetEditorControlButtonRect(0), buttonText))
-            HexPillarEditor.OnCreateNewPillarsPressed();
-
-        buttonText = "Selection Mode: " + (selectionMode == SelectionMode.Pillars ? "Pillars" : "Vertices");
-        if (GUI.Button(GetEditorControlButtonRect(1), buttonText))
-            selectionMode = (selectionMode == SelectionMode.Pillars ? SelectionMode.Vertices : SelectionMode.Pillars);
-
-        buttonText = "X-Ray Mode: " + (xRayMode ? "ON" : "OFF");
-        if (GUI.Button(GetEditorControlButtonRect(2), buttonText))
-            xRayMode = !xRayMode;
-
-        Handles.EndGUI();
-    }
-
-    void OnTerrainElementsDeselected()
-    {
-        HexPillarEditor.CancelPillarCreation();
-        Tools.hidden = false;
-    }
-
-    public static void RedrawSelections()
-    {
-        List<HexPillar> pillarsToRedraw = new List<HexPillar>();
-
-        foreach (Transform selectedTransform in Selection.transforms)
-        {
-            if (selectedTransform.GetComponent<HexPillar>() && !pillarsToRedraw.Contains(selectedTransform.GetComponent<HexPillar>()))
-                pillarsToRedraw.Add(selectedTransform.GetComponent<HexPillar>());
-
-            else if (selectedTransform.GetComponent<HexPillarEnd>() && !pillarsToRedraw.Contains(selectedTransform.GetComponent<HexPillarEnd>().pillar))
-                pillarsToRedraw.Add(selectedTransform.GetComponent<HexPillarEnd>().pillar);
-
-            else if (selectedTransform.GetComponent<HexPillarCorner>() && !pillarsToRedraw.Contains(selectedTransform.GetComponent<HexPillarCorner>().end.pillar))
-                pillarsToRedraw.Add(selectedTransform.GetComponent<HexPillarCorner>().end.pillar);
-        }
-
-        foreach (HexPillar selectedPillar in pillarsToRedraw)
-        {
-            selectedPillar.GenerateMesh();
-        }
-    }
-
-    static Rect GetEditorControlButtonRect(int buttonIndex)
-    {
-        const int maxButtons = 3;
-        if (buttonIndex < 0 || buttonIndex >= maxButtons)
-        {
-            Debug.LogWarning("Button index out of range.");
-            return new Rect();
-        }
-
-        float padding = Screen.width * 0.025f;
-
-        Vector2 buttonSize = new Vector2(
-            (Screen.width - padding * (maxButtons + 1)) / maxButtons,
-            Screen.height * 0.05f);
-
-        return new Rect(new Vector2(padding + (buttonSize.x + padding) * buttonIndex, Screen.height - (buttonSize.y * 2f) - padding), buttonSize);
-    }
-
-    void FindMissingPillars()
-    {
-        if (selectedTerrain && selectedTerrain.pillarGrid.Count != selectedTerrain.transform.childCount)
-        {
-            selectedTerrain.pillarGrid.Clear();
-
-            for (int i = 0; i < selectedTerrain.transform.childCount; ++i)
-            {
-                if (selectedTerrain.transform.GetChild(i).GetComponent<HexPillar>())
-                {
-                    selectedTerrain.AddExistingPillar(selectedTerrain.transform.GetChild(i).GetComponent<HexPillar>());
+                    if (selectedTerrain.transform.GetChild(i).GetComponent<HexPillar>())
+                    {
+                        selectedTerrain.AddExistingPillar(selectedTerrain.transform.GetChild(i).GetComponent<HexPillar>());
+                    }
                 }
             }
         }

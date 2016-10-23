@@ -1,43 +1,46 @@
-﻿using UnityEngine;
-
-public class HexPillarCorner : HexTerrainElement
+﻿namespace HexTerrain
 {
-    public HexPillarEnd end;
-    public HexCornerDirection direction;
-    public float height;
-    
-    public bool isOnTopEnd { get { return end.isTopEnd; } }
+    using UnityEngine;
 
-    public void Init(HexPillarEnd end, HexCornerDirection corner)
+    public class HexPillarCorner : HexTerrainElement
     {
-        this.end = end;
-        this.direction = corner;
-    }
+        public HexPillarEnd end;
+        public HexCornerDirection direction;
+        public float height;
 
-    void OnDestroy()
-    {
-        if (doNotRecreateOnDestroy || !end)
-            return;
+        public bool isOnTopEnd { get { return end.isTopEnd; } }
 
-        string cornerName = string.Format("Corner ({0}, {1})", direction.ToString(), end.isTopEnd ? "Top" : "Bottom");
-        GameObject cornerGmeObject = new GameObject(cornerName, typeof(HexPillarCorner));
-        cornerGmeObject.transform.SetParent(end.transform);
-        end.corners[(int)direction] = cornerGmeObject.GetComponent<HexPillarCorner>();
-        end.corners[(int)direction].Init(end, direction);
-        end.corners[(int)direction].height = end.centerHeight;
-        end.corners[(int)direction].UpdatePosition();
+        public void Init(HexPillarEnd end, HexCornerDirection corner)
+        {
+            this.end = end;
+            this.direction = corner;
+        }
 
-        end.pillar.GenerateMesh();
-    }
+        void OnDestroy()
+        {
+            if (doNotRecreateOnDestroy || !end)
+                return;
 
-    public void UpdatePosition()
-    {
-        transform.localPosition = HexHelper.GetCornerDirectionVector(direction) * end.pillar.terrain.hexRadius;
-        transform.localPosition += new Vector3(0, end.corners[(int)direction].height - end.transform.localPosition.y, 0);
-    }
+            string cornerName = string.Format("Corner ({0}, {1})", direction.ToString(), end.isTopEnd ? "Top" : "Bottom");
+            GameObject cornerGmeObject = new GameObject(cornerName, typeof(HexPillarCorner));
+            cornerGmeObject.transform.SetParent(end.transform);
+            end.corners[(int)direction] = cornerGmeObject.GetComponent<HexPillarCorner>();
+            end.corners[(int)direction].Init(end, direction);
+            end.corners[(int)direction].height = end.centerHeight;
+            end.corners[(int)direction].UpdatePosition();
 
-    public override HexTerrain GetTerrain()
-    {
-        return end.pillar.terrain;
+            end.pillar.GenerateMesh();
+        }
+
+        public void UpdatePosition()
+        {
+            transform.localPosition = HexHelper.GetCornerDirectionVector(direction) * end.pillar.terrain.hexRadius;
+            transform.localPosition += new Vector3(0, end.corners[(int)direction].height - end.transform.localPosition.y, 0);
+        }
+
+        public override HexTerrain GetTerrain()
+        {
+            return end.pillar.terrain;
+        }
     }
 }

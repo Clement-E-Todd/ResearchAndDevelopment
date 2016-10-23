@@ -1,15 +1,18 @@
-﻿using UnityEngine;
-
-[System.Serializable]
-public abstract class HexTerrainElement : MonoBehaviour
+﻿namespace HexTerrain
 {
-    protected bool doNotRecreateOnDestroy = false;
+    using UnityEngine;
 
-    public abstract HexTerrain GetTerrain();
-    
-    public void DestoryWithoutRecreating()
+    [System.Serializable]
+    public abstract class HexTerrainElement : MonoBehaviour
     {
-        doNotRecreateOnDestroy = true;
-        DestroyImmediate(gameObject);
+        protected bool doNotRecreateOnDestroy = false;
+
+        public abstract HexTerrain GetTerrain();
+
+        public void DestoryWithoutRecreating()
+        {
+            doNotRecreateOnDestroy = true;
+            DestroyImmediate(gameObject);
+        }
     }
 }
