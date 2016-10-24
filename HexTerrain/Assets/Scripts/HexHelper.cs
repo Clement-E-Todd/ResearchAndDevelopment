@@ -45,6 +45,28 @@
         }
 
         /**
+         * Gets a corner direction enum representing a corner's neighbouring corner.
+         */
+        public static HexCornerDirection GetCornerDirectionNextToCorner(HexCornerDirection cornerDirection, bool clockwise)
+        {
+            if (clockwise)
+                return (cornerDirection + 1 < HexCornerDirection.MAX) ? (HexCornerDirection)cornerDirection + 1 : 0;
+            else
+                return (cornerDirection - 1 > HexCornerDirection.INVALID) ? (HexCornerDirection)cornerDirection - 1 : HexCornerDirection.MAX - 1;
+        }
+
+        /**
+         * Gets an edge direction enum representing a edge's neighbouring edge.
+         */
+        public static HexEdgeDirection GetEdgeDirectionNextToEdge(HexEdgeDirection edgeDirection, bool clockwise)
+        {
+            if (clockwise)
+                return (edgeDirection + 1 < HexEdgeDirection.MAX) ? (HexEdgeDirection)edgeDirection + 1 : 0;
+            else
+                return (edgeDirection - 1 > HexEdgeDirection.INVALID) ? (HexEdgeDirection)edgeDirection - 1 : HexEdgeDirection.MAX - 1;
+        }
+
+        /**
          * Gets an edge direction enum representing an edge connected to the specified corner.
          */
         public static HexEdgeDirection GetEdgeDirectionNextToCorner(HexCornerDirection cornerDirection, bool clockwise)

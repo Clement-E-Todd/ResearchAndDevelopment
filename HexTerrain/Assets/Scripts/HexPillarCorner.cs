@@ -7,6 +7,7 @@
         public HexPillarEnd end;
         public HexCornerDirection direction;
         public float height;
+        public bool hideEdge;
 
         public bool isOnTopEnd { get { return end.isTopEnd; } }
 

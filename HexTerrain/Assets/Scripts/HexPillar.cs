@@ -178,6 +178,12 @@
                 const int centerVertIndex = 0;
                 for (int iTri = 0; iTri < (int)HexEdgeDirection.MAX; ++iTri)
                 {
+                    if (topEnd.corners[(int)HexHelper.GetCornerDirectionNextToEdge((HexEdgeDirection)iTri, true)].hideEdge &&
+                        topEnd.corners[(int)HexHelper.GetCornerDirectionNextToEdge((HexEdgeDirection)iTri, false)].hideEdge)
+                    {
+                        continue;
+                    }
+
                     triangles.Add(centerVertIndex);
 
                     triangles.Add(centerVertIndex + (iTri + 1));
@@ -191,6 +197,12 @@
                 const int centerVertIndex = 7;
                 for (int iTri = 0; iTri < (int)HexEdgeDirection.MAX; ++iTri)
                 {
+                    if (bottomEnd.corners[(int)HexHelper.GetCornerDirectionNextToEdge((HexEdgeDirection)iTri, true)].hideEdge &&
+                        bottomEnd.corners[(int)HexHelper.GetCornerDirectionNextToEdge((HexEdgeDirection)iTri, false)].hideEdge)
+                    {
+                        continue;
+                    }
+
                     triangles.Add(centerVertIndex);
 
                     triangles.Add(centerVertIndex + (iTri + 2 <= (int)HexEdgeDirection.MAX ? iTri + 2 : iTri - 4));
@@ -209,34 +221,142 @@
                 if (!mat)
                     continue;
 
+                // Get information on the corners and hidden status of this edge...
+                HexCornerDirection counterCorner = HexHelper.GetCornerDirectionNextToEdge(edge, false);
+                HexCornerDirection clockwiseCorner = HexHelper.GetCornerDirectionNextToEdge(edge, true);
+                HexCornerDirection[] edgeCorners = new HexCornerDirection[] { counterCorner, clockwiseCorner };
+
+                bool edgeHidden = topEnd.corners[(int)counterCorner].hideEdge && topEnd.corners[(int)clockwiseCorner].hideEdge &&
+                    bottomEnd.corners[(int)counterCorner].hideEdge && bottomEnd.corners[(int)clockwiseCorner].hideEdge;
+
+                bool counterEdgeHidden = edgeHidden &&
+                    topEnd.corners[(int)HexHelper.GetCornerDirectionNextToCorner(counterCorner, false)].hideEdge &&
+                        bottomEnd.corners[(int)HexHelper.GetCornerDirectionNextToCorner(counterCorner, false)].hideEdge;
+
+                bool clockwiseEdgeHidden = edgeHidden &&
+                    topEnd.corners[(int)HexHelper.GetCornerDirectionNextToCorner(clockwiseCorner, true)].hideEdge &&
+                        bottomEnd.corners[(int)HexHelper.GetCornerDirectionNextToCorner(clockwiseCorner, true)].hideEdge;
+
                 // Calculate vertices and UVs...
-                HexCornerDirection[] corners = new HexCornerDirection[] {
-            HexHelper.GetCornerDirectionNextToEdge(edge, false),
-            HexHelper.GetCornerDirectionNextToEdge(edge, true)
-            };
+                int counterOuterTopIndex = -1;
+                int counterOuterBottomIndex = -1;
+                int clockwiseOuterTopIndex = -1;
+                int clockwiseOuterBottomIndex = -1;
 
-                for (int iCorner = 0; iCorner < corners.Length; ++iCorner)
+                int counterInnerTopIndex = -1;
+                int counterInnerBottomIndex = -1;
+                int clockwiseInnerTopIndex = -1;
+                int clockwiseInnerBottomIndex = -1;
+
                 {
-                    Vector3 cornerPos = HexHelper.GetCornerDirectionVector(corners[iCorner]);
+                    Vector3 vertPos;
 
-                    cornerPos.y = topEnd.corners[(int)corners[iCorner]].height;
-                    vertices.Add(cornerPos);
-                    uvs.Add(new Vector2(1 - iCorner, cornerPos.y / sideTextureHeight));
+                    if (!counterEdgeHidden)
+                    {
+                        vertPos = HexHelper.GetCornerDirectionVector(counterCorner);
 
-                    cornerPos.y = bottomEnd.corners[(int)corners[iCorner]].height;
-                    vertices.Add(cornerPos);
-                    uvs.Add(new Vector2(1 - iCorner, cornerPos.y / sideTextureHeight));
+                        // Counter-clockwise corner, Outer, Top
+                        vertPos.y = topEnd.corners[(int)counterCorner].height;
+                        vertices.Add(vertPos);
+                        uvs.Add(new Vector2(1, vertPos.y / sideTextureHeight));
+                        counterOuterTopIndex = vertices.Count - 1;
+
+                        // Counter-clockwise corner, Outer, Bottom
+                        vertPos.y = bottomEnd.corners[(int)counterCorner].height;
+                        vertices.Add(vertPos);
+                        uvs.Add(new Vector2(1, vertPos.y / sideTextureHeight));
+                        counterOuterBottomIndex = vertices.Count - 1;
+
+                        if (edgeHidden)
+                        {
+                            vertPos = Vector3.zero;
+
+                            // Counter-clockwise corner, Inner, Top
+                            vertPos.y = topEnd.centerHeight;
+                            vertices.Add(vertPos);
+                            uvs.Add(new Vector2(0, vertPos.y / sideTextureHeight));
+                            counterInnerTopIndex = vertices.Count - 1;
+
+                            // Counter-clockwise corner, Inner, Bottom
+                            vertPos.y = bottomEnd.centerHeight;
+                            vertices.Add(vertPos);
+                            uvs.Add(new Vector2(0, vertPos.y / sideTextureHeight));
+                            counterInnerBottomIndex = vertices.Count - 1;
+                        }
+                    }
+
+                    if (!clockwiseEdgeHidden)
+                    {
+                        vertPos = HexHelper.GetCornerDirectionVector(clockwiseCorner);
+
+                        // Clockwise corner, Outer, Top
+                        vertPos.y = topEnd.corners[(int)clockwiseCorner].height;
+                        vertices.Add(vertPos);
+                        uvs.Add(new Vector2(0, vertPos.y / sideTextureHeight));
+                        clockwiseOuterTopIndex = vertices.Count - 1;
+
+                        // Clockwise corner, Outer, Bottom
+                        vertPos.y = bottomEnd.corners[(int)clockwiseCorner].height;
+                        vertices.Add(vertPos);
+                        uvs.Add(new Vector2(0, vertPos.y / sideTextureHeight));
+                        clockwiseOuterBottomIndex = vertices.Count - 1;
+
+                        if (edgeHidden)
+                        {
+                            vertPos = Vector3.zero;
+
+                            // Clockwise corner, Inner, Top
+                            vertPos.y = topEnd.centerHeight;
+                            vertices.Add(vertPos);
+                            uvs.Add(new Vector2(1, vertPos.y / sideTextureHeight));
+                            clockwiseInnerTopIndex = vertices.Count - 1;
+
+                            // Clockwise corner, Inner, Bottom
+                            vertPos.y = bottomEnd.centerHeight;
+                            vertices.Add(vertPos);
+                            uvs.Add(new Vector2(1, vertPos.y / sideTextureHeight));
+                            clockwiseInnerBottomIndex = vertices.Count - 1;
+                        }
+                    }
                 }
 
                 // Calculate triangles...
                 List<int> triangles = trianglesPerMat[mat];
-                triangles.Add(vertices.Count - 4); // Top-right of quad
-                triangles.Add(vertices.Count - 3); // Low-right of quad
-                triangles.Add(vertices.Count - 2); // Top-left of quad
 
-                triangles.Add(vertices.Count - 2); // Top-left of quad
-                triangles.Add(vertices.Count - 3); // Low-right of quad
-                triangles.Add(vertices.Count - 1); // Low-left of quad
+                if (!edgeHidden)
+                {
+                    triangles.Add(counterOuterTopIndex);      // Top-right of outer quad
+                    triangles.Add(counterOuterBottomIndex);   // Low-right of outer quad
+                    triangles.Add(clockwiseOuterTopIndex);    // Top-left of outer quad
+
+                    triangles.Add(clockwiseOuterTopIndex);    // Top-left of outer quad
+                    triangles.Add(counterOuterBottomIndex);   // Low-right of outer quad
+                    triangles.Add(clockwiseOuterBottomIndex); // Low-left of outer quad
+                }
+                else
+                {
+                    if (!counterEdgeHidden)
+                    {
+                        triangles.Add(clockwiseInnerTopIndex);    // Top-right of inner clockwise quad
+                        triangles.Add(clockwiseInnerBottomIndex); // Low-right of inner clockwise quad
+                        triangles.Add(clockwiseOuterTopIndex);    // Top-left of inner clockwise quad
+
+                        triangles.Add(clockwiseOuterTopIndex);    // Top-left of inner clockwise quad
+                        triangles.Add(clockwiseInnerBottomIndex); // Low-right of inner clockwise quad
+                        triangles.Add(clockwiseOuterBottomIndex); // Low-left of inner clockwise quad
+                    }
+
+                    if (!clockwiseEdgeHidden)
+                    {
+                        triangles.Add(counterOuterTopIndex);    // Top-right of inner counter-clockwise quad
+                        triangles.Add(counterOuterBottomIndex); // Low-right of inner counter-clockwise quad
+                        triangles.Add(counterInnerTopIndex);    // Top-left of inner counter-clockwise quad
+
+                        triangles.Add(counterInnerTopIndex);    // Top-left of inner counter-clockwise quad
+                        triangles.Add(counterOuterBottomIndex); // Low-right of inner counter-clockwise quad
+                        triangles.Add(counterInnerBottomIndex); // Low-left of inner counter-clockwise quad
+                    }
+                }
             }
 
             // Finalize the mesh.
