@@ -18,6 +18,7 @@
         public bool drawBottomEnd = true;
         public Material bottomMaterial;
         public Material[] wallMaterials = new Material[(int)HexEdgeDirection.MAX];
+        public bool[] hideSides = new bool[(int)HexEdgeDirection.MAX];
         public float sideTextureHeight = 1f;
 
         public void Init(HexTerrain terrain, HexGrid.Coord coord)
@@ -178,8 +179,7 @@
                 const int centerVertIndex = 0;
                 for (int iTri = 0; iTri < (int)HexEdgeDirection.MAX; ++iTri)
                 {
-                    if (topEnd.corners[(int)HexHelper.GetCornerDirectionNextToEdge((HexEdgeDirection)iTri, true)].hideEdge &&
-                        topEnd.corners[(int)HexHelper.GetCornerDirectionNextToEdge((HexEdgeDirection)iTri, false)].hideEdge)
+                    if (hideSides[iTri])
                     {
                         continue;
                     }
@@ -197,8 +197,7 @@
                 const int centerVertIndex = 7;
                 for (int iTri = 0; iTri < (int)HexEdgeDirection.MAX; ++iTri)
                 {
-                    if (bottomEnd.corners[(int)HexHelper.GetCornerDirectionNextToEdge((HexEdgeDirection)iTri, true)].hideEdge &&
-                        bottomEnd.corners[(int)HexHelper.GetCornerDirectionNextToEdge((HexEdgeDirection)iTri, false)].hideEdge)
+                    if (hideSides[iTri])
                     {
                         continue;
                     }
@@ -226,16 +225,9 @@
                 HexCornerDirection clockwiseCorner = HexHelper.GetCornerDirectionNextToEdge(edge, true);
                 HexCornerDirection[] edgeCorners = new HexCornerDirection[] { counterCorner, clockwiseCorner };
 
-                bool edgeHidden = topEnd.corners[(int)counterCorner].hideEdge && topEnd.corners[(int)clockwiseCorner].hideEdge &&
-                    bottomEnd.corners[(int)counterCorner].hideEdge && bottomEnd.corners[(int)clockwiseCorner].hideEdge;
-
-                bool counterEdgeHidden = edgeHidden &&
-                    topEnd.corners[(int)HexHelper.GetCornerDirectionNextToCorner(counterCorner, false)].hideEdge &&
-                        bottomEnd.corners[(int)HexHelper.GetCornerDirectionNextToCorner(counterCorner, false)].hideEdge;
-
-                bool clockwiseEdgeHidden = edgeHidden &&
-                    topEnd.corners[(int)HexHelper.GetCornerDirectionNextToCorner(clockwiseCorner, true)].hideEdge &&
-                        bottomEnd.corners[(int)HexHelper.GetCornerDirectionNextToCorner(clockwiseCorner, true)].hideEdge;
+                bool edgeHidden = hideSides[(int)edge];
+                bool counterEdgeHidden = hideSides[(int)HexHelper.GetCornerDirectionNextToEdge(edge, false)];
+                bool clockwiseEdgeHidden = hideSides[(int)HexHelper.GetCornerDirectionNextToEdge(edge, true)];
 
                 // Calculate vertices and UVs...
                 int counterOuterTopIndex = -1;
@@ -251,7 +243,7 @@
                 {
                     Vector3 vertPos;
 
-                    if (!counterEdgeHidden)
+                    if (!(edgeHidden && counterEdgeHidden))
                     {
                         vertPos = HexHelper.GetCornerDirectionVector(counterCorner);
 
@@ -285,7 +277,7 @@
                         }
                     }
 
-                    if (!clockwiseEdgeHidden)
+                    if (!(edgeHidden && clockwiseEdgeHidden))
                     {
                         vertPos = HexHelper.GetCornerDirectionVector(clockwiseCorner);
 
