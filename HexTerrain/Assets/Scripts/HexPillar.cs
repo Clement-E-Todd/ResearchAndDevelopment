@@ -226,8 +226,8 @@
                 HexCornerDirection[] edgeCorners = new HexCornerDirection[] { counterCorner, clockwiseCorner };
 
                 bool edgeHidden = hideSides[(int)edge];
-                bool counterEdgeHidden = hideSides[(int)HexHelper.GetCornerDirectionNextToEdge(edge, false)];
-                bool clockwiseEdgeHidden = hideSides[(int)HexHelper.GetCornerDirectionNextToEdge(edge, true)];
+                bool counterEdgeHidden = hideSides[(int)HexHelper.GetEdgeDirectionNextToEdge(edge, false)];
+                bool clockwiseEdgeHidden = hideSides[(int)HexHelper.GetEdgeDirectionNextToEdge(edge, true)];
 
                 // Calculate vertices and UVs...
                 int counterOuterTopIndex = -1;
@@ -329,17 +329,6 @@
                 {
                     if (!counterEdgeHidden)
                     {
-                        triangles.Add(clockwiseInnerTopIndex);    // Top-right of inner clockwise quad
-                        triangles.Add(clockwiseInnerBottomIndex); // Low-right of inner clockwise quad
-                        triangles.Add(clockwiseOuterTopIndex);    // Top-left of inner clockwise quad
-
-                        triangles.Add(clockwiseOuterTopIndex);    // Top-left of inner clockwise quad
-                        triangles.Add(clockwiseInnerBottomIndex); // Low-right of inner clockwise quad
-                        triangles.Add(clockwiseOuterBottomIndex); // Low-left of inner clockwise quad
-                    }
-
-                    if (!clockwiseEdgeHidden)
-                    {
                         triangles.Add(counterOuterTopIndex);    // Top-right of inner counter-clockwise quad
                         triangles.Add(counterOuterBottomIndex); // Low-right of inner counter-clockwise quad
                         triangles.Add(counterInnerTopIndex);    // Top-left of inner counter-clockwise quad
@@ -347,6 +336,17 @@
                         triangles.Add(counterInnerTopIndex);    // Top-left of inner counter-clockwise quad
                         triangles.Add(counterOuterBottomIndex); // Low-right of inner counter-clockwise quad
                         triangles.Add(counterInnerBottomIndex); // Low-left of inner counter-clockwise quad
+                    }
+
+                    if (!clockwiseEdgeHidden)
+                    {
+                        triangles.Add(clockwiseInnerTopIndex);    // Top-right of inner clockwise quad
+                        triangles.Add(clockwiseInnerBottomIndex); // Low-right of inner clockwise quad
+                        triangles.Add(clockwiseOuterTopIndex);    // Top-left of inner clockwise quad
+
+                        triangles.Add(clockwiseOuterTopIndex);    // Top-left of inner clockwise quad
+                        triangles.Add(clockwiseInnerBottomIndex); // Low-right of inner clockwise quad
+                        triangles.Add(clockwiseOuterBottomIndex); // Low-left of inner clockwise quad
                     }
                 }
             }
