@@ -179,7 +179,7 @@ namespace HexTerrain
 
         public static bool ShouldHideUnityTools()
         {
-            return HexTerrainEditor.selectedEnds != null && HexTerrainEditor.selectedEnds.Length > 0;
+            return HexTerrainEditor.selectedEnds != null && HexTerrainEditor.selectedEnds.Count > 0;
         }
     }
 }

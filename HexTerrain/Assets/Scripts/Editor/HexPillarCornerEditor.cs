@@ -180,7 +180,7 @@
 
         public static bool ShouldHideUnityTools()
         {
-            return HexTerrainEditor.selectedCorners != null && HexTerrainEditor.selectedCorners.Length > 0;
+            return HexTerrainEditor.selectedCorners != null && HexTerrainEditor.selectedCorners.Count > 0;
         }
     }
 }

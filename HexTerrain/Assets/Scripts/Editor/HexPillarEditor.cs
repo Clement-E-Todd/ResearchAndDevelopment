@@ -58,9 +58,24 @@ namespace HexTerrain
             return Vector3.Dot(positionDelta, direction);
         }
 
+        public static void HideSelectedEdges(bool hide)
+        {
+            foreach (HexPillarCorner corner in HexTerrainEditor.selectedCorners)
+            {
+                HexPillarCorner clockwiseCorner = corner.end.corners[(int)HexHelper.GetCornerDirectionNextToCorner(corner.direction, true)];
+
+                if (HexTerrainEditor.selectedCorners.Contains(clockwiseCorner))
+                {
+                    HexEdgeDirection clockwiseEdge = HexHelper.GetEdgeDirectionNextToCorner(corner.direction, true);
+
+                    corner.end.pillar.hideSides[(int)clockwiseEdge] = hide;
+                }
+            }
+        }
+
         public static bool ShouldHideUnityTools()
         {
-            return HexTerrainEditor.selectedPillars != null && (HexTerrainEditor.selectedPillars.Length > 0 || HexPillarCreationTool.creationInProgress);
+            return HexTerrainEditor.selectedPillars != null && (HexTerrainEditor.selectedPillars.Count > 0 || HexPillarCreationTool.creationInProgress);
         }
     }
 }

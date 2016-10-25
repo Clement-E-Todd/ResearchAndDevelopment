@@ -18,9 +18,9 @@
         static SelectionMode selectionMode = SelectionMode.Pillars;
 
         public static HexTerrain selectedTerrain { get; private set; }
-        public static HexPillar[] selectedPillars { get; private set; }
-        public static HexPillarEnd[] selectedEnds { get; private set; }
-        public static HexPillarCorner[] selectedCorners { get; private set; }
+        public static List<HexPillar> selectedPillars { get; private set; }
+        public static List<HexPillarEnd> selectedEnds { get; private set; }
+        public static List<HexPillarCorner> selectedCorners { get; private set; }
 
         public static bool xRayMode { get; private set; }
 
@@ -45,7 +45,7 @@
                     ShowTerrainEditorControls();
                 }
 
-                if (selectedPillars != null && selectedPillars.Length > 0)
+                if (selectedPillars != null && selectedPillars.Count > 0)
                 {
                     switch (selectionMode)
                     {
@@ -60,10 +60,10 @@
                     }
                 }
 
-                if (selectedEnds != null && selectedEnds.Length > 0 && selectionMode == SelectionMode.Vertices)
+                if (selectedEnds != null && selectedEnds.Count > 0 && selectionMode == SelectionMode.Vertices)
                     HexPillarEndEditor.OnSelectionModeVertices();
 
-                if (selectedCorners != null && selectedCorners.Length > 0 && selectionMode == SelectionMode.Vertices)
+                if (selectedCorners != null && selectedCorners.Count > 0 && selectionMode == SelectionMode.Vertices)
                     HexPillarCornerEditor.OnSelectionModeVertices();
 
                 HandleUtility.Repaint();
@@ -113,9 +113,9 @@
             {
                 terrainElementsSelected = true;
 
-                selectedPillars = newSelectedPillars.ToArray();
-                selectedEnds = newSelectedEnds.ToArray();
-                selectedCorners = newSelectedCorners.ToArray();
+                selectedPillars = newSelectedPillars;
+                selectedEnds = newSelectedEnds;
+                selectedCorners = newSelectedCorners;
 
                 HexPillarCornerEditor.UpdateOverlappingSelections();
             }
@@ -131,16 +131,37 @@
             Handles.BeginGUI();
 
             string buttonText = "Create New Hex Pillars";
-            if (GUI.Button(GetEditorControlButtonRect(0), buttonText))
+            if (GUI.Button(GetEditorControlButtonRect(0, 3, 0, 2), buttonText))
                 HexPillarCreationTool.OnCreateNewPillarsPressed();
 
             buttonText = "Selection Mode: " + (selectionMode == SelectionMode.Pillars ? "Pillars" : "Vertices");
-            if (GUI.Button(GetEditorControlButtonRect(1), buttonText))
+            if (GUI.Button(GetEditorControlButtonRect(1, 3, 0, 2), buttonText))
                 selectionMode = (selectionMode == SelectionMode.Pillars ? SelectionMode.Vertices : SelectionMode.Pillars);
 
             buttonText = "X-Ray Mode: " + (xRayMode ? "ON" : "OFF");
-            if (GUI.Button(GetEditorControlButtonRect(2), buttonText))
+            if (GUI.Button(GetEditorControlButtonRect(2, 3, 0, 2), buttonText))
                 xRayMode = !xRayMode;
+
+            if (selectionMode == SelectionMode.Pillars)
+            {
+                buttonText = "Move Selected";
+                if (GUI.Button(GetEditorControlButtonRect(0, 2, 1, 2), buttonText))
+                    Debug.LogError("\"Move Selected\" not implemented yet.");
+
+                buttonText = "Duplicate Selected";
+                if (GUI.Button(GetEditorControlButtonRect(1, 2, 1, 2), buttonText))
+                    Debug.LogError("\"Duplicate Selected\" not implemented yet.");
+            }
+            else if (selectionMode == SelectionMode.Vertices)
+            {
+                buttonText = "Hide Selected Edges";
+                if (GUI.Button(GetEditorControlButtonRect(0, 2, 1, 2), buttonText))
+                    HexPillarEditor.HideSelectedEdges(true);
+
+                buttonText = "Show Selected Edges";
+                if (GUI.Button(GetEditorControlButtonRect(1, 2, 1, 2), buttonText))
+                    HexPillarEditor.HideSelectedEdges(false);
+            }
 
             Handles.EndGUI();
         }
@@ -173,22 +194,27 @@
             }
         }
 
-        static Rect GetEditorControlButtonRect(int buttonIndex)
+        static Rect GetEditorControlButtonRect(int buttonIndex, int maxButtonsInRow, int rowIndex, int maxRows)
         {
-            const int maxButtons = 3;
-            if (buttonIndex < 0 || buttonIndex >= maxButtons)
+            if (buttonIndex < 0 || buttonIndex >= maxButtonsInRow)
             {
-                Debug.LogWarning("Button index out of range.");
+                Debug.LogWarning("Button index out of range for row.");
                 return new Rect();
             }
 
             float padding = Screen.width * 0.025f;
-
+            
             Vector2 buttonSize = new Vector2(
-                (Screen.width - padding * (maxButtons + 1)) / maxButtons,
+                (Screen.width - padding * (maxButtonsInRow + 1)) / maxButtonsInRow,
                 Screen.height * 0.05f);
 
-            return new Rect(new Vector2(padding + (buttonSize.x + padding) * buttonIndex, Screen.height - (buttonSize.y * 2f) - padding), buttonSize);
+            float buttonDistanceY = buttonSize.y + padding;
+
+            Vector2 buttonPosition = new Vector2(
+                padding + (buttonSize.x + padding) * buttonIndex,
+                Screen.height - padding - (buttonDistanceY * maxRows) + (buttonDistanceY * rowIndex));
+
+            return new Rect(buttonPosition, buttonSize);
         }
 
         public static bool IsPointObscured(Vector3 point)
