@@ -60,6 +60,8 @@ namespace HexTerrain
 
         public static void HideSelectedEdges(bool hide)
         {
+            List<HexPillar> pillarsToRedraw = new List<HexPillar>();
+
             foreach (HexPillarCorner corner in HexTerrainEditor.selectedCorners)
             {
                 HexPillarCorner clockwiseCorner = corner.end.corners[(int)HexHelper.GetCornerDirectionNextToCorner(corner.direction, true)];
@@ -69,7 +71,31 @@ namespace HexTerrain
                     HexEdgeDirection clockwiseEdge = HexHelper.GetEdgeDirectionNextToCorner(corner.direction, true);
 
                     corner.end.pillar.hideSides[(int)clockwiseEdge] = hide;
+
+                    if (!pillarsToRedraw.Contains(corner.end.pillar))
+                    {
+                        pillarsToRedraw.Add(corner.end.pillar);
+                    }
                 }
+            }
+
+            foreach (HexPillar pillar in pillarsToRedraw)
+            {
+                bool allSidesHidden = true;
+
+                for (HexEdgeDirection direction = 0; direction < HexEdgeDirection.MAX; ++direction)
+                {
+                    if (!pillar.hideSides[(int)direction])
+                    {
+                        allSidesHidden = false;
+                        break;
+                    }
+                }
+
+                if (!allSidesHidden)
+                    pillar.GenerateMesh();
+                else
+                    Undo.DestroyObjectImmediate(pillar.gameObject);
             }
         }
 
