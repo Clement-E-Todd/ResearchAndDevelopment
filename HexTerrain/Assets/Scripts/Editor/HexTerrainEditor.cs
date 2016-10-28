@@ -9,13 +9,13 @@
     [ExecuteInEditMode]
     public class HexTerrainEditor : Editor
     {
-        enum SelectionMode
+        enum Mode
         {
             Pillars,
             Vertices,
-            MAX
+            Materials
         }
-        static SelectionMode selectionMode = SelectionMode.Pillars;
+        static Mode mode = Mode.Pillars;
 
         public static HexTerrain selectedTerrain { get; private set; }
         public static List<HexPillar> selectedPillars { get; private set; }
@@ -47,23 +47,23 @@
 
                 if (selectedPillars != null && selectedPillars.Count > 0)
                 {
-                    switch (selectionMode)
+                    switch (mode)
                     {
-                        case SelectionMode.Pillars:
+                        case Mode.Pillars:
                             HexPillarEditor.OnSelectionModePillars();
                             HexPillarEndEditor.OnSelectionModePillars();
                             break;
 
-                        case SelectionMode.Vertices:
+                        case Mode.Vertices:
                             HexPillarEditor.OnSelectionModeVertices();
                             break;
                     }
                 }
 
-                if (selectedEnds != null && selectedEnds.Count > 0 && selectionMode == SelectionMode.Vertices)
+                if (selectedEnds != null && selectedEnds.Count > 0 && mode == Mode.Vertices)
                     HexPillarEndEditor.OnSelectionModeVertices();
 
-                if (selectedCorners != null && selectedCorners.Count > 0 && selectionMode == SelectionMode.Vertices)
+                if (selectedCorners != null && selectedCorners.Count > 0 && mode == Mode.Vertices)
                     HexPillarCornerEditor.OnSelectionModeVertices();
 
                 HandleUtility.Repaint();
@@ -130,37 +130,54 @@
         {
             Handles.BeginGUI();
 
-            string buttonText = "Create New Hex Pillars";
+            string buttonText = string.Format(mode == Mode.Pillars ? "> {0} <" : "{0}", "EDIT PILLARS");
             if (GUI.Button(GetEditorControlButtonRect(0, 3, 0, 2), buttonText))
-                HexPillarCreationTool.OnCreateNewPillarsPressed();
+                mode = Mode.Pillars;
 
-            buttonText = "Selection Mode: " + (selectionMode == SelectionMode.Pillars ? "Pillars" : "Vertices");
+            buttonText = string.Format(mode == Mode.Vertices ? "> {0} <" : "{0}", "EDIT VERTICES");
             if (GUI.Button(GetEditorControlButtonRect(1, 3, 0, 2), buttonText))
-                selectionMode = (selectionMode == SelectionMode.Pillars ? SelectionMode.Vertices : SelectionMode.Pillars);
+                mode = Mode.Vertices;
 
-            buttonText = "X-Ray Mode: " + (xRayMode ? "ON" : "OFF");
+            buttonText = string.Format(mode == Mode.Materials ? "> {0} <" : "{0}", "EDIT MATERIALS");
             if (GUI.Button(GetEditorControlButtonRect(2, 3, 0, 2), buttonText))
-                xRayMode = !xRayMode;
+                mode = Mode.Materials;
 
-            if (selectionMode == SelectionMode.Pillars)
+            switch (mode)
             {
-                buttonText = "Move Selected";
-                if (GUI.Button(GetEditorControlButtonRect(0, 2, 1, 2), buttonText))
-                    Debug.LogError("\"Move Selected\" not implemented yet.");
+                case Mode.Pillars:
+                    {
+                        buttonText = "Create New Pillars";
+                        if (GUI.Button(GetEditorControlButtonRect(0, 2, 1, 2), buttonText))
+                            HexPillarCreationTool.OnCreateNewPillarsPressed();
 
-                buttonText = "Duplicate Selected";
-                if (GUI.Button(GetEditorControlButtonRect(1, 2, 1, 2), buttonText))
-                    Debug.LogError("\"Duplicate Selected\" not implemented yet.");
-            }
-            else if (selectionMode == SelectionMode.Vertices)
-            {
-                buttonText = "Hide Selected Edges";
-                if (GUI.Button(GetEditorControlButtonRect(0, 2, 1, 2), buttonText))
-                    HexPillarEditor.HideSelectedEdges(true);
+                        buttonText = "Duplicate Selected";
+                        if (GUI.Button(GetEditorControlButtonRect(1, 2, 1, 2), buttonText))
+                            Debug.LogError("\"Duplicate Selected\" not implemented yet.");
 
-                buttonText = "Show Selected Edges";
-                if (GUI.Button(GetEditorControlButtonRect(1, 2, 1, 2), buttonText))
-                    HexPillarEditor.HideSelectedEdges(false);
+                        break;
+                    }
+
+                case Mode.Vertices:
+                    {
+                        buttonText = "X-Ray Mode: " + (xRayMode ? "ON" : "OFF");
+                        if (GUI.Button(GetEditorControlButtonRect(0, 3, 1, 2), buttonText))
+                            xRayMode = !xRayMode;
+
+                        buttonText = "Hide Selected Edges";
+                        if (GUI.Button(GetEditorControlButtonRect(1, 3, 1, 2), buttonText))
+                            HexPillarEditor.HideSelectedEdges(true);
+
+                        buttonText = "Show Selected Edges";
+                        if (GUI.Button(GetEditorControlButtonRect(2, 3, 1, 2), buttonText))
+                            HexPillarEditor.HideSelectedEdges(false);
+
+                        break;
+                    }
+
+                case Mode.Materials:
+                    {
+                        break;
+                    }
             }
 
             Handles.EndGUI();
