@@ -176,6 +176,18 @@
 
                 case Mode.Materials:
                     {
+                        buttonText = "PAINT FLOORS: " + (true ? "ON" : "OFF"); // TODO: Don't hard-code "ON"
+                        if (GUI.Button(GetEditorControlButtonRect(0, 4, 1, 2), buttonText))
+                            xRayMode = !xRayMode;
+
+                        buttonText = "PAINT SIDES: " + (true ? "ON" : "OFF"); // TODO: Don't hard-code "ON"
+                        if (GUI.Button(GetEditorControlButtonRect(1, 4, 1, 2), buttonText))
+                            HexPillarEditor.HideSelectedEdges(true);
+
+                        buttonText = "PAINT CEILINGS: " + (true ? "ON" : "OFF"); // TODO: Don't hard-code "ON"
+                        if (GUI.Button(GetEditorControlButtonRect(2, 4, 1, 2), buttonText))
+                            HexPillarEditor.HideSelectedEdges(false);
+
                         break;
                     }
             }
@@ -229,7 +241,7 @@
 
             Vector2 buttonPosition = new Vector2(
                 padding + (buttonSize.x + padding) * buttonIndex,
-                Screen.height - padding - (buttonDistanceY * maxRows) + (buttonDistanceY * rowIndex));
+                Screen.height - (padding * 2) - (buttonDistanceY * maxRows) + (buttonDistanceY * rowIndex));
 
             return new Rect(buttonPosition, buttonSize);
         }

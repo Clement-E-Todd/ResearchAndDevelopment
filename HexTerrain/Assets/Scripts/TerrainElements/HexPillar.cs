@@ -223,7 +223,6 @@
                 // Get information on the corners and hidden status of this edge...
                 HexCornerDirection counterCorner = HexHelper.GetCornerDirectionNextToEdge(edge, false);
                 HexCornerDirection clockwiseCorner = HexHelper.GetCornerDirectionNextToEdge(edge, true);
-                HexCornerDirection[] edgeCorners = new HexCornerDirection[] { counterCorner, clockwiseCorner };
 
                 bool edgeHidden = hideSides[(int)edge];
                 bool counterEdgeHidden = hideSides[(int)HexHelper.GetEdgeDirectionNextToEdge(edge, false)];

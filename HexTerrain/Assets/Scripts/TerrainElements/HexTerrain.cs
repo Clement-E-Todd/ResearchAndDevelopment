@@ -11,9 +11,6 @@
         public float minHeight = 0f;
         public float maxHeight = 20f;
 
-        public HexPillarEndBrush[] pillarFloorBrushes;
-        public HexPillarEndBrush[] pillarCeilingBrushes;
-
         public Material[] floorMaterials;
         public Material[] ceilingMaterials;
         public Material[] wallMaterials;
