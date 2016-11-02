@@ -29,6 +29,8 @@
 
         public void OnSceneGUI()
         {
+            HexPillarMaterialTool.DebugLog();
+
             if (terrainElementsSelected)
             {
                 FindMissingPillars();

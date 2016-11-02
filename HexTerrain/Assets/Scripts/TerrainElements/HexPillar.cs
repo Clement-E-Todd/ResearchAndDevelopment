@@ -21,6 +21,10 @@
         public bool[] hideSides = new bool[(int)HexEdgeDirection.MAX];
         public float sideTextureHeight = 1f;
 
+        List<int> floorTriangles;
+        List<int> sideTriangles;
+        List<int> ceilingTriangles;
+
         public void Init(HexTerrain terrain, HexGrid.Coord coord)
         {
             this.terrain = terrain;
@@ -173,6 +177,11 @@
             }
 
             // Calculate triangles...
+            int totalTriangles = 0;
+            floorTriangles = new List<int>();
+            sideTriangles = new List<int>();
+            ceilingTriangles = new List<int>();
+
             if (drawTopEnd && topMaterial)
             {
                 List<int> triangles = trianglesPerMat[topMaterial];
@@ -188,6 +197,8 @@
 
                     triangles.Add(centerVertIndex + (iTri + 1));
                     triangles.Add(centerVertIndex + (iTri + 2 <= (int)HexEdgeDirection.MAX ? iTri + 2 : iTri - 4));
+
+                    floorTriangles.Add(totalTriangles++);
                 }
             }
 
@@ -206,6 +217,8 @@
 
                     triangles.Add(centerVertIndex + (iTri + 2 <= (int)HexEdgeDirection.MAX ? iTri + 2 : iTri - 4));
                     triangles.Add(centerVertIndex + (iTri + 1));
+
+                    ceilingTriangles.Add(totalTriangles++);
                 }
             }
 
@@ -319,10 +332,12 @@
                     triangles.Add(counterOuterTopIndex);      // Top-right of outer quad
                     triangles.Add(counterOuterBottomIndex);   // Low-right of outer quad
                     triangles.Add(clockwiseOuterTopIndex);    // Top-left of outer quad
+                    sideTriangles.Add(totalTriangles++);
 
                     triangles.Add(clockwiseOuterTopIndex);    // Top-left of outer quad
                     triangles.Add(counterOuterBottomIndex);   // Low-right of outer quad
                     triangles.Add(clockwiseOuterBottomIndex); // Low-left of outer quad
+                    sideTriangles.Add(totalTriangles++);
                 }
                 else
                 {
@@ -331,10 +346,12 @@
                         triangles.Add(counterOuterTopIndex);    // Top-right of inner counter-clockwise quad
                         triangles.Add(counterOuterBottomIndex); // Low-right of inner counter-clockwise quad
                         triangles.Add(counterInnerTopIndex);    // Top-left of inner counter-clockwise quad
+                        sideTriangles.Add(totalTriangles++);
 
                         triangles.Add(counterInnerTopIndex);    // Top-left of inner counter-clockwise quad
                         triangles.Add(counterOuterBottomIndex); // Low-right of inner counter-clockwise quad
                         triangles.Add(counterInnerBottomIndex); // Low-left of inner counter-clockwise quad
+                        sideTriangles.Add(totalTriangles++);
                     }
 
                     if (!clockwiseEdgeHidden)
@@ -342,10 +359,12 @@
                         triangles.Add(clockwiseInnerTopIndex);    // Top-right of inner clockwise quad
                         triangles.Add(clockwiseInnerBottomIndex); // Low-right of inner clockwise quad
                         triangles.Add(clockwiseOuterTopIndex);    // Top-left of inner clockwise quad
+                        sideTriangles.Add(totalTriangles++);
 
                         triangles.Add(clockwiseOuterTopIndex);    // Top-left of inner clockwise quad
                         triangles.Add(clockwiseInnerBottomIndex); // Low-right of inner clockwise quad
                         triangles.Add(clockwiseOuterBottomIndex); // Low-left of inner clockwise quad
+                        sideTriangles.Add(totalTriangles++);
                     }
                 }
             }
@@ -383,6 +402,21 @@
         public override HexTerrain GetTerrain()
         {
             return terrain;
+        }
+
+        public bool IsFloorTriangle(int triangleIndex)
+        {
+            return floorTriangles.Contains(triangleIndex);
+        }
+
+        public bool IsSideTriangle(int sideIndex)
+        {
+            return sideTriangles.Contains(sideIndex);
+        }
+
+        public bool IsCeilingTriangle(int ceilingIndex)
+        {
+            return ceilingTriangles.Contains(ceilingIndex);
         }
     }
 }
