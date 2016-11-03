@@ -17,24 +17,14 @@ namespace HexTerrain
 
                 if (pillar)
                 {
-                    string message = hit.triangleIndex.ToString() + ": ";
-
                     if (pillar.IsFloorTriangle(hit.triangleIndex))
-                    {
-                        message += "FLOOR";
                         DrawRingOnFloor(pillar);
-                    }
 
                     if (pillar.IsSideTriangle(hit.triangleIndex))
-                        message += "SIDE";
+                        DrawSidesOfPillar(pillar);
 
                     if (pillar.IsCeilingTriangle(hit.triangleIndex))
-                    {
-                        message += "CEILING";
                         DrawRingOnCeiling(pillar);
-                    }
-
-                    Debug.Log(message);
                 }
             }
         }
@@ -67,6 +57,33 @@ namespace HexTerrain
                 Vector3 clockwiseCornerVector = HexHelper.GetCornerDirectionVector(clockwiseCorner) * pillar.GetTerrain().hexRadius;
                 Vector3 clockwisePoint = pillar.transform.TransformPoint(clockwiseCornerVector + new Vector3(0, pillar.bottomEnd.corners[(int)clockwiseCorner].height, 0));
 
+                Handles.DrawLine(counterPoint, clockwisePoint);
+            }
+        }
+
+        static void DrawSidesOfPillar(HexPillar pillar)
+        {
+            for (HexEdgeDirection direction = 0; direction < HexEdgeDirection.MAX; ++direction)
+            {
+                HexCornerDirection counterCorner = HexHelper.GetCornerDirectionNextToEdge(direction, false);
+                Vector3 counterCornerVector = HexHelper.GetCornerDirectionVector(counterCorner) * pillar.GetTerrain().hexRadius;
+                
+                HexCornerDirection clockwiseCorner = HexHelper.GetCornerDirectionNextToEdge(direction, true);
+                Vector3 clockwiseCornerVector = HexHelper.GetCornerDirectionVector(clockwiseCorner) * pillar.GetTerrain().hexRadius;
+
+                //Vertical Line
+                Vector3 topPoint = pillar.transform.TransformPoint(counterCornerVector + new Vector3(0, pillar.topEnd.corners[(int)counterCorner].height, 0));
+                Vector3 bottomPoint = pillar.transform.TransformPoint(counterCornerVector + new Vector3(0, pillar.bottomEnd.corners[(int)counterCorner].height, 0));
+                Handles.DrawLine(topPoint, bottomPoint);
+
+                // Top Line
+                Vector3 counterPoint = pillar.transform.TransformPoint(counterCornerVector + new Vector3(0, pillar.topEnd.corners[(int)counterCorner].height, 0));
+                Vector3 clockwisePoint = pillar.transform.TransformPoint(clockwiseCornerVector + new Vector3(0, pillar.topEnd.corners[(int)clockwiseCorner].height, 0));
+                Handles.DrawLine(counterPoint, clockwisePoint);
+
+                // Bottom Line
+                counterPoint = pillar.transform.TransformPoint(counterCornerVector + new Vector3(0, pillar.bottomEnd.corners[(int)counterCorner].height, 0));
+                clockwisePoint = pillar.transform.TransformPoint(clockwiseCornerVector + new Vector3(0, pillar.bottomEnd.corners[(int)clockwiseCorner].height, 0));
                 Handles.DrawLine(counterPoint, clockwisePoint);
             }
         }

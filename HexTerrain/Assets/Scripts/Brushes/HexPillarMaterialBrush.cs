@@ -19,7 +19,7 @@ namespace HexTerrain
             //Overlay   // NOT SUPPORTED YET
         }
         public EndPaintStyle endPaintStyle;
-        public float endPaintOverlayScale = 1f;
+        //public float endPaintOverlayScale = 1f;   // NOT SUPPORTED YET
 
         public enum SidePaintStyle
         {
@@ -33,7 +33,7 @@ namespace HexTerrain
             WrapFromNorthEastCorner
         }
         public SidePaintStyle sidePaintStyle;
-
+        public float sideTextureHeight = 1f;
 
         [MenuItem("Assets/Create/Hex Pillar Material Brush")]
         private static void Create()

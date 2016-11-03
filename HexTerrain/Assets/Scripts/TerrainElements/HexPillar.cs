@@ -12,18 +12,26 @@
         public HexGrid.Coord coord;
         public HexPillarEnd topEnd;
         public HexPillarEnd bottomEnd;
-
+        
+        public HexPillarMaterialBrush topMaterialBrush;
+        Material topMaterial;
+        short topMaterialRotation;
         public bool drawTopEnd = true;
-        public Material topMaterial;
-        public bool drawBottomEnd = true;
-        public Material bottomMaterial;
-        public Material[] wallMaterials = new Material[(int)HexEdgeDirection.MAX];
+
+        public HexPillarMaterialBrush sideMaterialBrush;
+        Material[] sideMaterials;
+        HexCornerDirection sideMaterialWrapCorner;
         public bool[] hideSides = new bool[(int)HexEdgeDirection.MAX];
         public float sideTextureHeight = 1f;
 
-        List<int> floorTriangles;
+        public HexPillarMaterialBrush bottomMaterialBrush;
+        Material bottomMaterial;
+        short bottomMaterialRotation;
+        public bool drawBottomEnd = true;
+
+        List<int> topTriangles;
         List<int> sideTriangles;
-        List<int> ceilingTriangles;
+        List<int> bottomTriangles;
 
         public void Init(HexTerrain terrain, HexGrid.Coord coord)
         {
@@ -87,6 +95,36 @@
 
         public void GenerateMesh()
         {
+            if (!topMaterialBrush && drawTopEnd)
+            {
+                if (terrain.defaultFloorBrush)
+                    topMaterialBrush = terrain.defaultFloorBrush;
+                else
+                    return;
+
+                SelectTopMaterialFromBrush();
+            }
+
+            if (!sideMaterialBrush)
+            {
+                if (terrain.defaultSideBrush)
+                    sideMaterialBrush = terrain.defaultSideBrush;
+                else
+                    return;
+
+                SelectSideMaterialsFromBrush();
+            }
+
+            if (!bottomMaterialBrush && drawBottomEnd)
+            {
+                if (terrain.defaultCeilingBrush)
+                    bottomMaterialBrush = terrain.defaultCeilingBrush;
+                else
+                    return;
+
+                SelectBottomMaterialFromBrush();
+            }
+
             // Place logical constraints on the geometry before creating a mesh based on it
             int pillarIndex = terrain.pillarGrid[coord].IndexOf(this);
             HexPillar pillarAbove = pillarIndex + 1 < terrain.pillarGrid[coord].Count ? terrain.pillarGrid[coord][pillarIndex + 1] : null;
@@ -96,16 +134,12 @@
             // Collect the various materials into one list
             List<Material> allMaterials = new List<Material>();
 
-            if (topMaterial)
-                allMaterials.Add(topMaterial);
-
-            if (bottomMaterial)
-                allMaterials.Add(bottomMaterial);
-
-            foreach (Material mat in wallMaterials)
+            allMaterials.Add(topMaterial);
+            allMaterials.Add(bottomMaterial);
+            foreach (Material material in sideMaterials)
             {
-                if (mat)
-                    allMaterials.Add(mat);
+                if (material && !allMaterials.Contains(material))
+                    allMaterials.Add(material);
             }
 
             // Begin setting up the meshes.
@@ -133,7 +167,7 @@
             */
 
             // Calculate vertices...
-            if (drawTopEnd && topMaterial)
+            if (drawTopEnd && topMaterialBrush)
             {
                 vertices.Add(new Vector3(0, topEnd.centerHeight, 0));
                 for (HexCornerDirection direction = 0; direction < HexCornerDirection.MAX; ++direction)
@@ -144,7 +178,7 @@
                 }
             }
 
-            if (drawBottomEnd && bottomMaterial)
+            if (drawBottomEnd && bottomMaterialBrush)
             {
                 vertices.Add(new Vector3(0, bottomEnd.centerHeight, 0));
                 for (HexCornerDirection direction = 0; direction < HexCornerDirection.MAX; ++direction)
@@ -156,31 +190,39 @@
             }
 
             // Calculate UVs...
-            if (drawTopEnd && topMaterial)
+            if (drawTopEnd && topMaterialBrush)
             {
                 uvs.Add(new Vector2(0.5f, 0.5f));
                 for (HexCornerDirection direction = 0; direction < HexCornerDirection.MAX; ++direction)
                 {
-                    Vector3 directionVector = HexHelper.GetCornerDirectionVector(direction);
+                    HexCornerDirection realDirection = direction + topMaterialRotation;
+                    if (realDirection >= HexCornerDirection.MAX)
+                        realDirection -= HexCornerDirection.MAX;
+
+                    Vector3 directionVector = HexHelper.GetCornerDirectionVector(realDirection);
                     uvs.Add(new Vector2(0.5f + directionVector.x / 2, 0.5f + directionVector.z / 2));
                 }
             }
 
-            if (drawBottomEnd && bottomMaterial)
+            if (drawBottomEnd && bottomMaterialBrush)
             {
                 uvs.Add(new Vector2(0.5f, 0.5f));
                 for (HexCornerDirection direction = 0; direction < HexCornerDirection.MAX; ++direction)
                 {
-                    Vector3 directionVector = HexHelper.GetCornerDirectionVector(direction);
+                    HexCornerDirection realDirection = direction + bottomMaterialRotation;
+                    if (realDirection >= HexCornerDirection.MAX)
+                        realDirection -= HexCornerDirection.MAX;
+
+                    Vector3 directionVector = HexHelper.GetCornerDirectionVector(realDirection);
                     uvs.Add(new Vector2(0.5f - directionVector.x / 2, 0.5f + directionVector.z / 2));
                 }
             }
 
             // Calculate triangles...
             int totalTriangles = 0;
-            floorTriangles = new List<int>();
+            topTriangles = new List<int>();
             sideTriangles = new List<int>();
-            ceilingTriangles = new List<int>();
+            bottomTriangles = new List<int>();
 
             if (drawTopEnd && topMaterial)
             {
@@ -198,7 +240,7 @@
                     triangles.Add(centerVertIndex + (iTri + 1));
                     triangles.Add(centerVertIndex + (iTri + 2 <= (int)HexEdgeDirection.MAX ? iTri + 2 : iTri - 4));
 
-                    floorTriangles.Add(totalTriangles++);
+                    topTriangles.Add(totalTriangles++);
                 }
             }
 
@@ -218,21 +260,16 @@
                     triangles.Add(centerVertIndex + (iTri + 2 <= (int)HexEdgeDirection.MAX ? iTri + 2 : iTri - 4));
                     triangles.Add(centerVertIndex + (iTri + 1));
 
-                    ceilingTriangles.Add(totalTriangles++);
+                    bottomTriangles.Add(totalTriangles++);
                 }
             }
 
             /*
             * Generate the sides connecting the top to the bottom.
             */
+            int matIndex = 0;
             for (HexEdgeDirection edge = 0; edge < HexEdgeDirection.MAX; ++edge)
             {
-                // Choose a material for this surface...
-                Material mat = wallMaterials[Random.Range(0, wallMaterials.Length)];
-
-                if (!mat)
-                    continue;
-
                 // Get information on the corners and hidden status of this edge...
                 HexCornerDirection counterCorner = HexHelper.GetCornerDirectionNextToEdge(edge, false);
                 HexCornerDirection clockwiseCorner = HexHelper.GetCornerDirectionNextToEdge(edge, true);
@@ -325,10 +362,12 @@
                 }
 
                 // Calculate triangles...
-                List<int> triangles = trianglesPerMat[mat];
-
                 if (!edgeHidden)
                 {
+                    Material mat = sideMaterials[matIndex];
+                    List<int> triangles = trianglesPerMat[mat];
+                    matIndex++;
+
                     triangles.Add(counterOuterTopIndex);      // Top-right of outer quad
                     triangles.Add(counterOuterBottomIndex);   // Low-right of outer quad
                     triangles.Add(clockwiseOuterTopIndex);    // Top-left of outer quad
@@ -343,6 +382,10 @@
                 {
                     if (!counterEdgeHidden)
                     {
+                        Material mat = sideMaterials[matIndex];
+                        List<int> triangles = trianglesPerMat[mat];
+                        matIndex++;
+
                         triangles.Add(counterOuterTopIndex);    // Top-right of inner counter-clockwise quad
                         triangles.Add(counterOuterBottomIndex); // Low-right of inner counter-clockwise quad
                         triangles.Add(counterInnerTopIndex);    // Top-left of inner counter-clockwise quad
@@ -356,6 +399,10 @@
 
                     if (!clockwiseEdgeHidden)
                     {
+                        Material mat = sideMaterials[matIndex];
+                        List<int> triangles = trianglesPerMat[mat];
+                        matIndex++;
+
                         triangles.Add(clockwiseInnerTopIndex);    // Top-right of inner clockwise quad
                         triangles.Add(clockwiseInnerBottomIndex); // Low-right of inner clockwise quad
                         triangles.Add(clockwiseOuterTopIndex);    // Top-left of inner clockwise quad
@@ -391,6 +438,95 @@
                 collider.sharedMesh = mesh;
         }
 
+        void SelectTopMaterialFromBrush()
+        {
+            topMaterial = topMaterialBrush.materials[Random.Range(0, topMaterialBrush.materials.Length)];
+
+            if (topMaterialBrush.endPaintStyle == HexPillarMaterialBrush.EndPaintStyle.PerHexWithRandomRotation)
+            {
+                topMaterialRotation = (short)Random.Range(0, 6);
+            }
+            else
+            {
+                topMaterialRotation = 0;
+            }
+        }
+
+        void SelectSideMaterialsFromBrush()
+        {
+            sideMaterials = new Material[GetNeededSideMaterialCount()];
+
+            if (sideMaterialBrush.sidePaintStyle == HexPillarMaterialBrush.SidePaintStyle.RandomMaterialOnEveryFace)
+            {
+                for (int i = 0; i < sideMaterials.Length; ++i)
+                {
+                    sideMaterials[i] = sideMaterialBrush.materials[Random.Range(0, sideMaterialBrush.materials.Length)];
+                }
+            }
+            else
+            {
+                if (sideMaterialBrush.sidePaintStyle == HexPillarMaterialBrush.SidePaintStyle.WrapFromRandomCorner)
+                {
+                    sideMaterialWrapCorner = (HexCornerDirection)Random.Range(0, (int)HexCornerDirection.MAX);
+                }
+                else
+                {
+                    sideMaterialWrapCorner = (HexCornerDirection)(sideMaterialBrush.sidePaintStyle - 2);
+                }
+
+                int matIndex = sideMaterialBrush.materials.Length - 1;
+                for (int i = 0; i < sideMaterials.Length; ++i)
+                {
+                    sideMaterials[i] = sideMaterialBrush.materials[matIndex];
+
+                    matIndex--;
+
+                    if (matIndex < 0)
+                        matIndex = sideMaterialBrush.materials.Length - 1;
+                }
+            }
+        }
+
+        void SelectBottomMaterialFromBrush()
+        {
+            bottomMaterial = bottomMaterialBrush.materials[Random.Range(0, bottomMaterialBrush.materials.Length)];
+
+            if (bottomMaterialBrush.endPaintStyle == HexPillarMaterialBrush.EndPaintStyle.PerHexWithRandomRotation)
+            {
+                bottomMaterialRotation = (short)Random.Range(0, 6);
+            }
+            else
+            {
+                bottomMaterialRotation = 0;
+            }
+        }
+
+        int GetNeededSideMaterialCount()
+        {
+            int count = 0;
+
+            for (HexEdgeDirection direction = 0; direction < HexEdgeDirection.MAX; ++direction)
+            {
+                if (hideSides[(int)direction])
+                {
+                    // Add one material for the counter-clockwise edge of the cut-out side.
+                    if (!hideSides[(int)HexHelper.GetEdgeDirectionNextToEdge(direction, false)])
+                        count++;
+
+                    // Add one material for the clockwise edge of the cut-out side.
+                    if (!hideSides[(int)HexHelper.GetEdgeDirectionNextToEdge(direction, true)])
+                        count++;
+                }
+                else
+                {
+                    // Add one material for the unhidden side.
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
         void OnUndoRedo()
         {
             if (this)
@@ -406,7 +542,7 @@
 
         public bool IsFloorTriangle(int triangleIndex)
         {
-            return floorTriangles.Contains(triangleIndex);
+            return topTriangles.Contains(triangleIndex);
         }
 
         public bool IsSideTriangle(int sideIndex)
@@ -416,7 +552,7 @@
 
         public bool IsCeilingTriangle(int ceilingIndex)
         {
-            return ceilingTriangles.Contains(ceilingIndex);
+            return bottomTriangles.Contains(ceilingIndex);
         }
     }
 }

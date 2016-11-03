@@ -11,19 +11,16 @@
         public float minHeight = 0f;
         public float maxHeight = 20f;
 
-        public Material[] floorMaterials;
-        public Material[] ceilingMaterials;
-        public Material[] wallMaterials;
-
         public HexTerrainPillarGrid pillarGrid = new HexTerrainPillarGrid();
+
+        public HexPillarMaterialBrush defaultFloorBrush;
+        public HexPillarMaterialBrush defaultSideBrush;
+        public HexPillarMaterialBrush defaultCeilingBrush;
 
         const int sidesPerHex = 6;
 
         public HexPillar AddNewPillar(HexGrid.Coord coord, float topHeight = 1f, float bottomHeight = 0f)
         {
-            if (floorMaterials == null || ceilingMaterials == null || wallMaterials == null)
-                return null;
-
             GameObject pillarObject = new GameObject();
             pillarObject.name = string.Format("Pillar [{0}, {1}]", coord.x, coord.y);
             pillarObject.transform.SetParent(transform);
@@ -58,20 +55,6 @@
 
             pillar.topEnd.SetFlatHeight(topHeight);
             pillar.bottomEnd.SetFlatHeight(bottomHeight);
-
-            if (floorMaterials.Length > 0)
-                pillar.topMaterial = floorMaterials[Random.Range(0, floorMaterials.Length)];
-
-            if (ceilingMaterials.Length > 0)
-                pillar.bottomMaterial = ceilingMaterials[Random.Range(0, ceilingMaterials.Length)];
-
-            if (wallMaterials.Length > 0)
-            {
-                for (HexEdgeDirection edgeDirection = 0; edgeDirection < HexEdgeDirection.MAX; ++edgeDirection)
-                {
-                    pillar.wallMaterials[(int)edgeDirection] = wallMaterials[Random.Range(0, wallMaterials.Length)];
-                }
-            }
 
             pillar.GenerateMesh();
 
