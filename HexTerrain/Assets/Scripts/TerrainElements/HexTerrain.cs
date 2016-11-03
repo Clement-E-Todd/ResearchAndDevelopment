@@ -13,6 +13,7 @@
 
         public HexTerrainPillarGrid pillarGrid = new HexTerrainPillarGrid();
 
+        public HexPillarMaterialBrush currentMaterialBrush;
         public HexPillarMaterialBrush defaultFloorBrush;
         public HexPillarMaterialBrush defaultSideBrush;
         public HexPillarMaterialBrush defaultCeilingBrush;

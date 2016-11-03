@@ -7,7 +7,7 @@
 
     public static class HexPillarCornerEditor
     {
-        public static void OnSelectionModeVertices()
+        public static void UpdateVerticesMode()
         {
             foreach (HexPillarCorner selectedCorner in HexTerrainEditor.selectedCorners)
             {

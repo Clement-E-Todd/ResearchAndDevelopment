@@ -35,7 +35,7 @@ namespace HexTerrain
             pillarCreationState = PillarCreationState.None;
         }
 
-        public static void UpdatePillarCreationState()
+        public static void UpdateCreationState()
         {
             if (!HexTerrainEditor.selectedTerrain)
             {
