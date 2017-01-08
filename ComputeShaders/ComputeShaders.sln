@@ -1,7 +1,7 @@
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2008
-
-Project("{B54B7F0B-DE0E-B347-81ED-7E8DB7DCCECF}") = "ComputeShaders", "Assembly-CSharp.csproj", "{FA607956-2B89-E533-AC11-AC4E78C7D827}"
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2015
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComputeShaders.CSharp", "ComputeShaders.CSharp.csproj", "{ABBF9F89-0791-ED61-C9B0-536DEC451E29}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -9,32 +9,12 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{FA607956-2B89-E533-AC11-AC4E78C7D827}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FA607956-2B89-E533-AC11-AC4E78C7D827}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FA607956-2B89-E533-AC11-AC4E78C7D827}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FA607956-2B89-E533-AC11-AC4E78C7D827}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ABBF9F89-0791-ED61-C9B0-536DEC451E29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ABBF9F89-0791-ED61-C9B0-536DEC451E29}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ABBF9F89-0791-ED61-C9B0-536DEC451E29}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ABBF9F89-0791-ED61-C9B0-536DEC451E29}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
-																	GlobalSection(MonoDevelopProperties) = preSolution
-		StartupItem = Assembly-CSharp.csproj
-		Policies = $0
-		$0.TextStylePolicy = $1
-		$1.inheritsSet = null
-		$1.scope = text/x-csharp
-		$0.CSharpFormattingPolicy = $2
-		$2.inheritsSet = Mono
-		$2.inheritsScope = text/x-csharp
-		$2.scope = text/x-csharp
-		$0.TextStylePolicy = $3
-		$3.FileWidth = 120
-		$3.TabWidth = 4
-		$3.IndentWidth = 4
-		$3.EolMarker = Unix
-		$3.inheritsSet = Mono
-		$3.inheritsScope = text/plain
-		$3.scope = text/plain
-	EndGlobalSection
-
 EndGlobal
