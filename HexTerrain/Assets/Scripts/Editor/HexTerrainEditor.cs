@@ -29,44 +29,38 @@
 
         public void OnSceneGUI()
         {
-            HexPillarMaterialTool.DebugLog();
-
             if (terrainElementsSelected)
             {
                 FindMissingPillars();
-
-                HexPillarCreationTool.UpdatePillarCreationState();
 
                 Tools.hidden = (
                     HexPillarEditor.ShouldHideUnityTools() ||
                     HexPillarEndEditor.ShouldHideUnityTools() ||
                     HexPillarCornerEditor.ShouldHideUnityTools());
 
+                switch (mode)
+                {
+                    case Mode.Pillars:
+                        HexPillarEditor.UpdatePillarsMode();
+                        HexPillarEndEditor.UpdatePillarsMode();
+                        HexPillarCreationTool.UpdateCreationState();
+                        break;
+
+                    case Mode.Vertices:
+                        HexPillarEditor.UpdateVerticesMode();
+                        HexPillarEndEditor.UpdateVerticesMode();
+                        HexPillarCornerEditor.UpdateVerticesMode();
+                        break;
+
+                    case Mode.Materials:
+                        HexPillarMaterialTool.UpdateMaterialsMode();
+                        break;
+                }
+                
                 if (!HexPillarCreationTool.creationInProgress)
                 {
                     ShowTerrainEditorControls();
                 }
-
-                if (selectedPillars != null && selectedPillars.Count > 0)
-                {
-                    switch (mode)
-                    {
-                        case Mode.Pillars:
-                            HexPillarEditor.OnSelectionModePillars();
-                            HexPillarEndEditor.OnSelectionModePillars();
-                            break;
-
-                        case Mode.Vertices:
-                            HexPillarEditor.OnSelectionModeVertices();
-                            break;
-                    }
-                }
-
-                if (selectedEnds != null && selectedEnds.Count > 0 && mode == Mode.Vertices)
-                    HexPillarEndEditor.OnSelectionModeVertices();
-
-                if (selectedCorners != null && selectedCorners.Count > 0 && mode == Mode.Vertices)
-                    HexPillarCornerEditor.OnSelectionModeVertices();
 
                 HandleUtility.Repaint();
             }
@@ -171,23 +165,6 @@
 
                         buttonText = "Show Selected Edges";
                         if (GUI.Button(GetEditorControlButtonRect(2, 3, 1, 2), buttonText))
-                            HexPillarEditor.HideSelectedEdges(false);
-
-                        break;
-                    }
-
-                case Mode.Materials:
-                    {
-                        buttonText = "PAINT FLOORS: " + (true ? "ON" : "OFF"); // TODO: Don't hard-code "ON"
-                        if (GUI.Button(GetEditorControlButtonRect(0, 4, 1, 2), buttonText))
-                            xRayMode = !xRayMode;
-
-                        buttonText = "PAINT SIDES: " + (true ? "ON" : "OFF"); // TODO: Don't hard-code "ON"
-                        if (GUI.Button(GetEditorControlButtonRect(1, 4, 1, 2), buttonText))
-                            HexPillarEditor.HideSelectedEdges(true);
-
-                        buttonText = "PAINT CEILINGS: " + (true ? "ON" : "OFF"); // TODO: Don't hard-code "ON"
-                        if (GUI.Button(GetEditorControlButtonRect(2, 4, 1, 2), buttonText))
                             HexPillarEditor.HideSelectedEdges(false);
 
                         break;

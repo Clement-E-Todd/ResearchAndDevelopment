@@ -7,8 +7,11 @@ namespace HexTerrain
 {
     public static class HexPillarEditor
     {
-        public static void OnSelectionModePillars()
+        public static void UpdatePillarsMode()
         {
+            if (HexTerrainEditor.selectedPillars == null)
+                return;
+
             foreach (HexPillar selectedPillar in HexTerrainEditor.selectedPillars)
             {
                 float delta = Handle(selectedPillar);
@@ -22,8 +25,11 @@ namespace HexTerrain
             }
         }
 
-        public static void OnSelectionModeVertices()
+        public static void UpdateVerticesMode()
         {
+            if (HexTerrainEditor.selectedPillars == null)
+                return;
+
             foreach (HexPillar selectedPillar in HexTerrainEditor.selectedPillars)
             {
                 for (HexCornerDirection direction = 0; direction < HexCornerDirection.MAX; ++direction)

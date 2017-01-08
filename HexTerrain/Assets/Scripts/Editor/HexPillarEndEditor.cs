@@ -7,8 +7,11 @@ namespace HexTerrain
 {
     public static class HexPillarEndEditor
     {
-        public static void OnSelectionModePillars()
+        public static void UpdatePillarsMode()
         {
+            if (HexTerrainEditor.selectedPillars == null)
+                return;
+
             foreach (HexPillar selectedPillar in HexTerrainEditor.selectedPillars)
             {
                 foreach (HexPillarEnd selectedEnd in new HexPillarEnd[] { selectedPillar.topEnd, selectedPillar.bottomEnd })
@@ -33,8 +36,11 @@ namespace HexTerrain
             }
         }
 
-        public static void OnSelectionModeVertices()
+        public static void UpdateVerticesMode()
         {
+            if (HexTerrainEditor.selectedEnds == null)
+                return;
+
             foreach (HexPillarEnd selectedEnd in HexTerrainEditor.selectedEnds)
             {
                 float delta = Handle(selectedEnd, 0.5f, new Color(0f, 1f, 0.25f));

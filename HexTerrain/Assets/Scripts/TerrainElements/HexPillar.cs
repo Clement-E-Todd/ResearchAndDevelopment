@@ -22,7 +22,6 @@
         Material[] sideMaterials;
         HexCornerDirection sideMaterialWrapCorner;
         public bool[] hideSides = new bool[(int)HexEdgeDirection.MAX];
-        public float sideTextureHeight = 1f;
 
         public HexPillarMaterialBrush bottomMaterialBrush;
         Material bottomMaterial;
@@ -95,35 +94,39 @@
 
         public void GenerateMesh()
         {
+            // Ensure we have valid brushes and materials to paint the pillar with.
             if (!topMaterialBrush && drawTopEnd)
             {
-                if (terrain.defaultFloorBrush)
-                    topMaterialBrush = terrain.defaultFloorBrush;
-                else
-                    return;
+                if (!terrain.defaultFloorBrush)
+                    terrain.defaultFloorBrush = Resources.Load<HexPillarMaterialBrush>("Hex Material Brushes/Default/FloorBrush-Default");
 
-                SelectTopMaterialFromBrush();
+                topMaterialBrush = terrain.defaultFloorBrush;
             }
 
             if (!sideMaterialBrush)
             {
-                if (terrain.defaultSideBrush)
-                    sideMaterialBrush = terrain.defaultSideBrush;
-                else
-                    return;
+                if (!terrain.defaultSideBrush)
+                    terrain.defaultSideBrush = Resources.Load<HexPillarMaterialBrush>("Hex Material Brushes/Default/SideBrush-Default");
 
-                SelectSideMaterialsFromBrush();
+                sideMaterialBrush = terrain.defaultSideBrush;
             }
 
             if (!bottomMaterialBrush && drawBottomEnd)
             {
-                if (terrain.defaultCeilingBrush)
-                    bottomMaterialBrush = terrain.defaultCeilingBrush;
-                else
-                    return;
+                if (!terrain.defaultCeilingBrush)
+                    terrain.defaultCeilingBrush = Resources.Load<HexPillarMaterialBrush>("Hex Material Brushes/Default/CeilingBrush-Default");
 
-                SelectBottomMaterialFromBrush();
+                bottomMaterialBrush = terrain.defaultCeilingBrush;
             }
+
+            if (topMaterial == null)
+                SelectTopMaterialFromBrush();
+
+            if (sideMaterials == null)
+                SelectSideMaterialsFromBrush();
+
+            if (bottomMaterial == null)
+                SelectBottomMaterialFromBrush();
 
             // Place logical constraints on the geometry before creating a mesh based on it
             int pillarIndex = terrain.pillarGrid[coord].IndexOf(this);
@@ -299,13 +302,13 @@
                         // Counter-clockwise corner, Outer, Top
                         vertPos.y = topEnd.corners[(int)counterCorner].height;
                         vertices.Add(vertPos);
-                        uvs.Add(new Vector2(1, vertPos.y / sideTextureHeight));
+                        uvs.Add(new Vector2(1, vertPos.y / sideMaterialBrush.sideTextureHeight));
                         counterOuterTopIndex = vertices.Count - 1;
 
                         // Counter-clockwise corner, Outer, Bottom
                         vertPos.y = bottomEnd.corners[(int)counterCorner].height;
                         vertices.Add(vertPos);
-                        uvs.Add(new Vector2(1, vertPos.y / sideTextureHeight));
+                        uvs.Add(new Vector2(1, vertPos.y / sideMaterialBrush.sideTextureHeight));
                         counterOuterBottomIndex = vertices.Count - 1;
 
                         if (edgeHidden)
@@ -315,13 +318,13 @@
                             // Counter-clockwise corner, Inner, Top
                             vertPos.y = topEnd.centerHeight;
                             vertices.Add(vertPos);
-                            uvs.Add(new Vector2(0, vertPos.y / sideTextureHeight));
+                            uvs.Add(new Vector2(0, vertPos.y / sideMaterialBrush.sideTextureHeight));
                             counterInnerTopIndex = vertices.Count - 1;
 
                             // Counter-clockwise corner, Inner, Bottom
                             vertPos.y = bottomEnd.centerHeight;
                             vertices.Add(vertPos);
-                            uvs.Add(new Vector2(0, vertPos.y / sideTextureHeight));
+                            uvs.Add(new Vector2(0, vertPos.y / sideMaterialBrush.sideTextureHeight));
                             counterInnerBottomIndex = vertices.Count - 1;
                         }
                     }
@@ -333,13 +336,13 @@
                         // Clockwise corner, Outer, Top
                         vertPos.y = topEnd.corners[(int)clockwiseCorner].height;
                         vertices.Add(vertPos);
-                        uvs.Add(new Vector2(0, vertPos.y / sideTextureHeight));
+                        uvs.Add(new Vector2(0, vertPos.y / sideMaterialBrush.sideTextureHeight));
                         clockwiseOuterTopIndex = vertices.Count - 1;
 
                         // Clockwise corner, Outer, Bottom
                         vertPos.y = bottomEnd.corners[(int)clockwiseCorner].height;
                         vertices.Add(vertPos);
-                        uvs.Add(new Vector2(0, vertPos.y / sideTextureHeight));
+                        uvs.Add(new Vector2(0, vertPos.y / sideMaterialBrush.sideTextureHeight));
                         clockwiseOuterBottomIndex = vertices.Count - 1;
 
                         if (edgeHidden)
@@ -349,13 +352,13 @@
                             // Clockwise corner, Inner, Top
                             vertPos.y = topEnd.centerHeight;
                             vertices.Add(vertPos);
-                            uvs.Add(new Vector2(1, vertPos.y / sideTextureHeight));
+                            uvs.Add(new Vector2(1, vertPos.y / sideMaterialBrush.sideTextureHeight));
                             clockwiseInnerTopIndex = vertices.Count - 1;
 
                             // Clockwise corner, Inner, Bottom
                             vertPos.y = bottomEnd.centerHeight;
                             vertices.Add(vertPos);
-                            uvs.Add(new Vector2(1, vertPos.y / sideTextureHeight));
+                            uvs.Add(new Vector2(1, vertPos.y / sideMaterialBrush.sideTextureHeight));
                             clockwiseInnerBottomIndex = vertices.Count - 1;
                         }
                     }
@@ -438,7 +441,7 @@
                 collider.sharedMesh = mesh;
         }
 
-        void SelectTopMaterialFromBrush()
+        public void SelectTopMaterialFromBrush()
         {
             topMaterial = topMaterialBrush.materials[Random.Range(0, topMaterialBrush.materials.Length)];
 
@@ -452,7 +455,7 @@
             }
         }
 
-        void SelectSideMaterialsFromBrush()
+        public void SelectSideMaterialsFromBrush()
         {
             sideMaterials = new Material[GetNeededSideMaterialCount()];
 
@@ -487,7 +490,7 @@
             }
         }
 
-        void SelectBottomMaterialFromBrush()
+        public void SelectBottomMaterialFromBrush()
         {
             bottomMaterial = bottomMaterialBrush.materials[Random.Range(0, bottomMaterialBrush.materials.Length)];
 
@@ -542,16 +545,25 @@
 
         public bool IsFloorTriangle(int triangleIndex)
         {
+            if (topTriangles == null)
+                return false;
+
             return topTriangles.Contains(triangleIndex);
         }
 
         public bool IsSideTriangle(int sideIndex)
         {
+            if (sideTriangles == null)
+                return false;
+
             return sideTriangles.Contains(sideIndex);
         }
 
         public bool IsCeilingTriangle(int ceilingIndex)
         {
+            if (bottomTriangles == null)
+                return false;
+
             return bottomTriangles.Contains(ceilingIndex);
         }
     }
