@@ -1,4 +1,2 @@
 # ResearchAndDevelopment
-A repository for all of my smaller little programming projects and experiments!
-
-Each project should be created IN ITS OWN BRANCH.
+This branch is for following along with the Unity tutorials at this site: http://catlikecoding.com/unity/tutorials/
