@@ -4,4 +4,7 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/1 Basics/4 Frames Per Second/FramerateScene.unity
+    guid: e1c05c96fa07581458e559ee3df4785b

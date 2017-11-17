@@ -1,6 +1,7 @@
 Temp/
 Library/
 ExportedObj/
+Builds/
 obj/
 .vs/
 /*.csproj
