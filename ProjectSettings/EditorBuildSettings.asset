@@ -6,5 +6,14 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/1 Basics/1 Game Objects and Scripts/ClockScene.unity
+    guid: 826615ca8e7fc89418d26749a5ec5a67
+  - enabled: 1
+    path: Assets/1 Basics/2 Building a Graph/GraphScene.unity
+    guid: 3927d5e395460fb4497787e9826b964c
+  - enabled: 1
     path: Assets/1 Basics/4 Frames Per Second/FramerateScene.unity
     guid: e1c05c96fa07581458e559ee3df4785b
+  - enabled: 1
+    path: Assets/1 Basics/5 Object Pools/ObjectPoolScene.unity
+    guid: e3253e64d00afc145822203dcb164de9
