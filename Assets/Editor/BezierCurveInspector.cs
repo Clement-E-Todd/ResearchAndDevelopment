@@ -25,7 +25,6 @@ public class BezierCurveInspector : Editor
 
 		Handles.color = Color.gray;
 		Handles.DrawLine(p0, p1);
-		Handles.DrawLine(p1, p2);
 		Handles.DrawLine(p2, p3);
 
 		ShowDirections();
