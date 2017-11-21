@@ -16,13 +16,13 @@ public class BezierCurve : MonoBehaviour
 
 	public Vector3 GetPoint(float t)
 	{
-		return transform.TransformPoint(BezierHelper.GetPoint(points[0], points[1], points[2], points[3], t));
+		return transform.TransformPoint(Bezier.GetPoint(points[0], points[1], points[2], points[3], t));
 	}
 
 	// The "velocity" is a straight line indicating the current direction that the curve is going at a given point
 	public Vector3 GetVelocity(float t)
 	{
-		return transform.TransformPoint(BezierHelper.GetFirstDerivative(points[0], points[1], points[2], points[3], t)) - transform.position;
+		return transform.TransformPoint(Bezier.GetFirstDerivative(points[0], points[1], points[2], points[3], t)) - transform.position;
 	}
 
 	public Vector3 GetDirection(float t)

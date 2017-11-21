@@ -3,7 +3,29 @@ using UnityEngine;
 
 public class BezierSpline : MonoBehaviour
 {
-	public Vector3[] points;
+	[SerializeField] // We still want this data to be saved in the editor even though it's private
+	private Vector3[] points;
+
+	[SerializeField]
+	private Bezier.ControlPointMode[] modes;
+
+	public int ControlPointCount
+	{
+		get
+		{
+			return points.Length;
+		}
+	}
+
+	public Vector3 GetControlPoint(int index)
+	{
+		return points[index];
+	}
+
+	public void SetControlPoint(int index, Vector3 point)
+	{
+		points[index] = point;
+	}
 
 	public int CurveCount
 	{
@@ -29,7 +51,7 @@ public class BezierSpline : MonoBehaviour
 			i *= 3;
 		}
 		return transform.TransformPoint(
-			BezierHelper.GetPoint(
+			Bezier.GetPoint(
 				points[i],
 				points[i + 1],
 				points[i + 2],
@@ -52,7 +74,7 @@ public class BezierSpline : MonoBehaviour
 			i *= 3;
 		}
 		return transform.TransformPoint(
-			BezierHelper.GetFirstDerivative(
+			Bezier.GetFirstDerivative(
 				points[i],
 				points[i + 1],
 				points[i + 2],
@@ -72,6 +94,10 @@ public class BezierSpline : MonoBehaviour
 			new Vector3(2f, 0f, 0f),
 			new Vector3(3f, 0f, 0f)
 		};
+		modes = new Bezier.ControlPointMode[] {
+			Bezier.ControlPointMode.Free,
+			Bezier.ControlPointMode.Free
+		};
 	}
 
 	public void AddCurve()
@@ -84,5 +110,18 @@ public class BezierSpline : MonoBehaviour
 		points[points.Length - 2] = point;
 		point.x += 1f;
 		points[points.Length - 1] = point;
+
+		Array.Resize(ref modes, modes.Length + 1);
+		modes[modes.Length - 1] = modes[modes.Length - 2];
+	}
+
+	public Bezier.ControlPointMode GetControlPointMode(int index)
+	{
+		return modes[(index + 1) / 3];
+	}
+
+	public void SetControlPointMode(int index, Bezier.ControlPointMode mode)
+	{
+		modes[(index + 1) / 3] = mode;
 	}
 }
