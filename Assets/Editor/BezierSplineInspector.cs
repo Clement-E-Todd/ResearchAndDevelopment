@@ -61,8 +61,12 @@ public class BezierSplineInspector : Editor
 
 	private Vector3 ShowPoint(int index)
 	{
-		Vector3 point = handleTransform.TransformPoint(spline.GetControlPoint(index));
+		Vector3 point = handleTransform.TransformPoint(spline.GetControlPointPosition(index));
 		float size = HandleUtility.GetHandleSize(point);
+		if (index == 0)
+		{
+			size *= 2f;
+		}
 		Handles.color = modeColors[(int)spline.GetControlPointMode(index)];
 		if (Handles.Button(point, handleRotation, size * handleSize, size * pickSize, Handles.DotHandleCap))
 		{
@@ -79,7 +83,7 @@ public class BezierSplineInspector : Editor
 			{
 				Undo.RecordObject(spline, "Move Point");
 				EditorUtility.SetDirty(spline);
-				spline.SetControlPoint(index, handleTransform.InverseTransformPoint(point));
+				spline.SetControlPointPosition(index, handleTransform.InverseTransformPoint(point));
 			}
 		}
 		return point;
@@ -90,7 +94,16 @@ public class BezierSplineInspector : Editor
 		//DrawDefaultInspector(); // We removed this because we don't want the spline's points displayed in the inspector
 
 		spline = target as BezierSpline;
-		
+
+		EditorGUI.BeginChangeCheck();
+		bool loop = EditorGUILayout.Toggle("Loop", spline.Loop);
+		if (EditorGUI.EndChangeCheck())
+		{
+			Undo.RecordObject(spline, "Toggle Loop");
+			EditorUtility.SetDirty(spline);
+			spline.Loop = loop;
+		}
+
 		if (selectedIndex >= 0 && selectedIndex < spline.ControlPointCount)
 		{
 			DrawSelectedPointInspector();
@@ -109,12 +122,12 @@ public class BezierSplineInspector : Editor
 		// Allow the selected point to be set numerically in the inspector
 		GUILayout.Label("Selected Point");
 		EditorGUI.BeginChangeCheck();
-		Vector3 point = EditorGUILayout.Vector3Field("Position", spline.GetControlPoint(selectedIndex));
+		Vector3 point = EditorGUILayout.Vector3Field("Position", spline.GetControlPointPosition(selectedIndex));
 		if (EditorGUI.EndChangeCheck())
 		{
 			Undo.RecordObject(spline, "Move Point");
 			EditorUtility.SetDirty(spline);
-			spline.SetControlPoint(selectedIndex, point);
+			spline.SetControlPointPosition(selectedIndex, point);
 		}
 
 		// Allow the mode of the point to be set (free, aligned or mirrored)
