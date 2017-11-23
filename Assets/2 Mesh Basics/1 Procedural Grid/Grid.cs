@@ -22,20 +22,23 @@ public class Grid : MonoBehaviour
 		GetComponent<MeshFilter>().mesh = mesh = new Mesh();
 		mesh.name = "Procedural Grid";
 
-		// Define the vertices
+		// Define the vertices and UVs
 		vertices = new Vector3[(xSize + 1) * (ySize + 1)];
+		Vector2[] uv = new Vector2[vertices.Length];
 
 		for (int i = 0, y = 0; y <= ySize; y++)
 		{
 			for (int x = 0; x <= xSize; x++, i++)
 			{
 				vertices[i] = new Vector3(x, y);
+				uv[i] = new Vector2((float)x / xSize, (float)y / ySize);
 
 				yield return wait;
 			}
 		}
 
 		mesh.vertices = vertices;
+		mesh.uv = uv;
 
 		// Define the triangles
 		int[] triangles = new int[xSize * ySize * 6];
@@ -59,6 +62,10 @@ public class Grid : MonoBehaviour
 				yield return wait;
 			}
 		}
+
+		// Recalculate Normals
+		mesh.RecalculateNormals();
+		yield return wait;
 	}
 
 	private void OnDrawGizmos()
