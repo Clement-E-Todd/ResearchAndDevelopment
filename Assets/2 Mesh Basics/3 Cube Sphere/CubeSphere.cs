@@ -243,7 +243,7 @@ public class CubeSphere : MonoBehaviour
 		gameObject.AddComponent<SphereCollider>();
 	}
 
-	private void OnDrawGizmos()
+	private void OnDrawGizmosSelected()
 	{
 		if (vertices == null)
 		{
