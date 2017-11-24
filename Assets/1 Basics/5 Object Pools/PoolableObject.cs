@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
+#if UNITY_EDITOR
 using UnityEditor.SceneManagement;
+#endif
 
 public class PoolableObject : MonoBehaviour
 {
@@ -11,7 +13,7 @@ public class PoolableObject : MonoBehaviour
 
 	protected virtual void Awake()
 	{
-		EditorSceneManager.activeSceneChanged += OnSceneChanged;
+		SceneManager.activeSceneChanged += OnSceneChanged;
 	}
 
 	public void ReturnToPool()

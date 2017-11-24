@@ -17,3 +17,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/1 Basics/5 Object Pools/ObjectPoolScene.unity
     guid: e3253e64d00afc145822203dcb164de9
+  - enabled: 1
+    path: Assets/1 Basics/6 Curves And Splines/CurvesAndSplines.unity
+    guid: 8ecb71b7c59a70741a2b4c3388fbab74
+  - enabled: 1
+    path: Assets/2 Mesh Basics/1 Procedural Grid/ProceduralGridScene.unity
+    guid: 6dcae04abedf2f644b6b64c82a67b655
+  - enabled: 1
+    path: Assets/2 Mesh Basics/2 Rounded Cube/RoundedCubeScene.unity
+    guid: eae069802b1a0224cb01de1d913ada3b
