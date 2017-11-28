@@ -21,7 +21,7 @@
             float4 _MainTex_ST, _DetailTex_ST;
 
             struct Parameters {
-                float4 worldPosition : SV_POSITION;
+                float4 clipPosition : SV_POSITION;
                 float2 uv : TEXCOORD0;
                 float2 uvDetail : TEXCOORD1;
             };
@@ -34,7 +34,7 @@
             Parameters MyVertexProgram(VertexData vertexData) {
 
                 Parameters parameters;
-                parameters.worldPosition = UnityObjectToClipPos(vertexData.position);
+                parameters.clipPosition = UnityObjectToClipPos(vertexData.position);
                 parameters.uv = TRANSFORM_TEX(vertexData.uv, _MainTex);
                 parameters.uvDetail = TRANSFORM_TEX(vertexData.uv, _DetailTex);
                 return parameters;

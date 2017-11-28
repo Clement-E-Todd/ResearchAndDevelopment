@@ -40,7 +40,7 @@ Shader "Custom/My First Shader" {
             // Declaring structs is a handy way to pass along all of the data from the vertex shader
             // to the fragment shader without bloating their parameter lists.
             struct Parameters {
-                float4 worldPosition : SV_POSITION;
+                float4 clipPosition : SV_POSITION;
                 float2 uv : TEXCOORD0;
             };
 
@@ -58,7 +58,7 @@ Shader "Custom/My First Shader" {
             // particular program will be affecting the vertices' positions.
             // This program takes the position provided by Unity (via the "POSITION" keyword) as input.
             // Note: The semantics TEXCOORD0, TEXCOORD1, TEXCOORD2 and so on are conventionally used
-            // to pass any data outside of the fragment's world position. This data must be declared in
+            // to pass any data outside of the fragment's clipping position. This data must be declared in
             // the vertex program's input using the "out" keyword. We are using a single struct to pass
             // data here, but see the commented-out declaration of "localPosition" below to see how to
             // declare the data without a struct in the parameter list.
@@ -71,9 +71,9 @@ Shader "Custom/My First Shader" {
                 Parameters parameters;
                 
                 // The position provided to us is in the object's local space. In order to display
-                // properly in world space, we must multiply it with the model-view-projection matrix.
+                // properly in clipping space, we must multiply it with the model-view-projection matrix.
                 // See upgrade note at top of file.
-                parameters.worldPosition = UnityObjectToClipPos(vertexData.position);
+                parameters.clipPosition = UnityObjectToClipPos(vertexData.position);
 
                 // When calculating the final UVs to use, tiling is stored in the x and y values of the
                 // "_ST" variable while offset is stored in z and w. Unity has a handy macro for setting
