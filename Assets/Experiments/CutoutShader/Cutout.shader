@@ -1,8 +1,6 @@
-﻿// Upgrade NOTE: replaced '_Object2World' with 'unity_ObjectToWorld'
-
-Shader "Experiments/Cutout" {
+﻿Shader "Experiments/Cutout" {
     Properties{
-        _BrightColor("Bright Color", Color) = (0.75,0.75,0.75,1)
+        _LightColor("Light Color", Color) = (0.75,0.75,0.75,1)
         _DarkColor("Dark Color", Color) = (0.25,0.25,0.25,1)
     }
 
@@ -20,7 +18,7 @@ Shader "Experiments/Cutout" {
 
             #include "UnityStandardUtils.cginc"
 
-            float4 _BrightColor;
+            float4 _LightColor;
             float4 _DarkColor;
 
             struct VertexParams {
@@ -62,9 +60,36 @@ Shader "Experiments/Cutout" {
             }
 
             float4 FragmentProgram(FragmentParams input) : SV_TARGET {
-                float3 viewDirection = normalize(_WorldSpaceCameraPos - input.worldPosition);
+                static const float PI = 3.14159265f;
+
+                float3 viewFragDirection = normalize(_WorldSpaceCameraPos - input.worldPosition);
+                float3 viewMeshDirection = normalize(_WorldSpaceCameraPos - input.meshWorldPosition);
                 float3 lightDirection = normalize(_WorldSpaceLightPos0.xyz);
-                return lerp(_DarkColor, _BrightColor, dot(lightDirection, viewDirection) / 2 + 0.5);
+                
+                // Calculate how well-lit the mesh is from the camera's perspective
+                float meshBrightness = dot(lightDirection, viewMeshDirection) / 2 + 0.5;
+
+                // Calculate how wide of a range the gradient should have
+                float gradientRange = sin(meshBrightness * PI);
+
+                // Calculate the color range of the gradient based on the mesh brightness
+                float4 darkColor = lerp(_DarkColor, _LightColor, clamp(meshBrightness - gradientRange / 2, 0, 1));
+                float4 lightColor = lerp(_DarkColor, _LightColor, clamp(meshBrightness + gradientRange / 2, 0, 1));
+
+                // Calculate how well-lit this fragment is from the camera's perspective
+                float fragBrightness = dot(-lightDirection, viewFragDirection) / 2 + 0.5;
+
+                // TEST: Squeeze the gradient in towards its midpoint
+                // TODO: Keep this feature but make it more graceful / dynamic
+                fragBrightness = fragBrightness * 2 - 0.5;
+
+                // Select a color from the gradient range according to the frag brightness
+                float4 fragColor = lerp(darkColor, lightColor, fragBrightness);
+
+                // TEST: Uncomment this to make the midpoint visibility stronger
+                //fragColor.r = fragBrightness > 0.5 ? 0.75 : 0.25;
+
+                return fragColor;
             }
 
             ENDCG
