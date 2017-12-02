@@ -45,8 +45,9 @@
 
             float4 FragmentProgram(FragmentParams input) : SV_TARGET {
                 static const float PI = 3.14159265f;
-                static const float squeezeFactorMax = 16;
+                static const float squeezeFactorMax = 5;
 
+                float cameraDistance = distance(_WorldSpaceCameraPos, input.worldPosition);
                 float3 cameraToFragDir = normalize(_WorldSpaceCameraPos - input.worldPosition);
                 float3 cameraToMeshDir = normalize(_WorldSpaceCameraPos - input.meshWorldPosition);
                 float3 lightDirection = normalize(_WorldSpaceLightPos0.xyz);
@@ -65,15 +66,14 @@
                 float fragBrightness = dot(-lightDirection, cameraToFragDir) / 2 + 0.5;
 
                 // Squeeze the gradient in towards its midpoint
-                // TODO: Scale the squeeze strength up as target gets deeper in view space
-                float squeezeFactor = 0.5 + _Squeeze * (squeezeFactorMax - 0.5);
+                float squeezeFactor = 0.5 + (_Squeeze * squeezeFactorMax) * cameraDistance;
                 fragBrightness = fragBrightness * (squeezeFactor * 2) - max(0, squeezeFactor - 0.5);
 
                 // Center the gradient on the mesh
                 fragBrightness += dot(lightDirection, cameraToMeshDir) * squeezeFactor;
 
                 // Select a color from the gradient range according to the frag brightness
-                return lerp(darkColor, lightColor, fragBrightness);
+                return lerp(darkColor, lightColor, clamp(fragBrightness, 0, 1));
             }
 
             ENDCG
